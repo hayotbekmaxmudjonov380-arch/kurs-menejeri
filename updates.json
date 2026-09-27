@@ -1,0 +1,9 @@
+{
+  "win8": {
+    "version": "1.3.0",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.0/KursManager.exe",
+    "sha256": "d70928514a6b9390bdd952f13403f2eb036be0d949333ea0fedf91ef4f55423d",
+    "notes": "- Dastlabki masofaviy yangilanish"
+  },
+  "win10": {"version": "1.0.0", "url": "", "sha256": "", "notes": ""}
+}
