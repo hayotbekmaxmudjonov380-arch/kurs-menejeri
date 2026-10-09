@@ -14,7 +14,7 @@
   "android": {
     "version": "1.3.6",
     "versionCode": 137,
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.6/KursManager.apk",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.6/KursManager-v1.3.6.apk",
     "sha256": "011a8395fb5e66491a5dacbfd968469e6b246d50cdf6cda6d263b60c506ec575",
     "notes": "Yangiliklar:\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
   }
