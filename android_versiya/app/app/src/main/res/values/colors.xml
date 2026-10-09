@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#080D19</color>
+    <color name="bg_dark">#060A14</color>
+    <color name="panel">#0E1628</color>
+    <color name="panel_alt">#131C33</color>
+    <color name="border">#1C2742</color>
+    <color name="text">#E8EEF7</color>
+    <color name="text_dim">#93A1BD</color>
+    <color name="text_faint">#5B6B8C</color>
+    <color name="primary">#2B7FFF</color>
+    <color name="primary_dark">#1D4ED8</color>
+    <color name="green">#22C55E</color>
+    <color name="green_dark">#189A52</color>
+    <color name="amber">#F5A80B</color>
+    <color name="amber_dark">#D9930D</color>
+    <color name="red">#F0435A</color>
+    <color name="red_dark">#E0324B</color>
+    <color name="avatar_bg">#C3D4F5</color>
+    <color name="avatar_fg">#1E3A8A</color>
+</resources>

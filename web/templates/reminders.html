@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Eslatmalar — Kurs Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">Eslatmalar</div>
+        <div class="page-sub">Rejalashtirilgan ishlar — vaqti kelganda ekranda habar chiqadi</div>
+    </div>
+    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addRemModal">+ Yangi eslatma</button>
+</div>
+
+<div class="card-dark p-0">
+    <div class="table-responsive">
+        <table class="table table-dark-custom">
+            <colgroup>
+                <col style="width:170px">
+                <col>
+                <col>
+                <col style="width:150px">
+                <col style="width:220px">
+            </colgroup>
+            <thead><tr><th>Sana va vaqt</th><th>Sarlavha</th><th>Izoh</th><th>Holat</th><th class="text-center">Amallar</th></tr></thead>
+            <tbody>
+                {% for r in reminders %}
+                <tr {% if r.is_done %}style="opacity:.55"{% endif %}>
+                    <td>📅 {{ r.datetime_display }}</td>
+                    <td style="font-weight:600">{{ r.title }}</td>
+                    <td>{{ r.note or '—' }}</td>
+                    <td>
+                        {% if r.status_color == 'green' %}<span class="sbadge sbadge-green"><i class="bi bi-check-circle-fill"></i> {{ r.status }}</span>
+                        {% elif r.status_color == 'red' %}<span class="sbadge sbadge-red"><i class="bi bi-exclamation-circle-fill"></i> {{ r.status }}</span>
+                        {% else %}<span class="sbadge sbadge-amber"><i class="bi bi-clock-fill"></i> {{ r.status }}</span>{% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex gap-1 justify-content-center">
+                            <form method="post" action="{{ url_for('reminder_toggle', rid=r.id) }}" style="display:inline">
+                                <button class="btn btn-sm-action {% if not r.is_done %}text-success{% endif %}" type="submit" title="{% if r.is_done %}Bajarilmagan deb belgilash{% else %}Bajarildi deb belgilash{% endif %}">
+                                    <i class="bi bi-{% if r.is_done %}arrow-counterclockwise{% else %}check-lg{% endif %}"></i>
+                                </button>
+                            </form>
+                            <button class="btn btn-sm-action" onclick="editReminder({{ r.id }})" title="Tahrirlash"><i class="bi bi-pencil"></i></button>
+                            <form method="post" action="{{ url_for('reminder_delete', rid=r.id) }}" onsubmit="return confirm('O\'chirishni xohlaysizmi?')" style="display:inline">
+                                <button class="btn btn-sm-action text-danger" type="submit"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not reminders %}<tr><td colspan="5" class="text-center py-4" style="color:var(--text-faint)">Eslatmalar yo'q</td></tr>{% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<p class="hint mt-2">⏰ Vaqt kelganda brauzer bildirishnomasi + tovush + ekranda karta chiqadi. Bildirishnomalar uchun brauzer ruxsati kerak (birinchi bosishda so'raladi).</p>
+
+<!-- Yangi eslatma modali -->
+<div class="modal fade" id="addRemModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" action="{{ url_for('reminder_create') }}">
+        <div class="modal-header"><h5 class="modal-title">Yangi eslatma</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">Sarlavha *</label><input type="text" name="title" class="form-control" required placeholder="Masalan: 10-sinfdan test olish"></div>
+            <div class="mb-3">
+                <label class="form-label">Oy *</label>
+                <div class="month-grid">
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="8">Avg</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="9">Sen</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="10">Okt</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="11">Noy</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="12">Dek</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="1">Yan</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="2">Fev</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="3">Mar</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="4">Apr</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="5">May</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="6">Iyn</label>
+                    <label class="month-pill"><input type="radio" name="add_rem_month" value="7">Iyl</label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Kun / Yil / Soat <span class="rem-weekday hint ms-1"></span></label>
+                <div class="d-flex gap-2">
+                    <input type="number" class="form-control rem-day" min="1" max="31" value="{{ now().strftime('%d') }}" style="max-width:90px" title="Kun">
+                    <input type="number" class="form-control rem-year" min="2020" max="2100" value="{{ now().strftime('%Y') }}" style="max-width:110px" title="Yil">
+                    <input type="number" class="form-control rem-hour" min="0" max="23" value="09" style="max-width:90px" title="Soat">
+                    <input type="number" class="form-control rem-min" min="0" max="59" value="00" style="max-width:90px" title="Daqiqa">
+                </div>
+                <input type="hidden" name="remind_at" class="rem-at">
+                <div class="hint mt-1 rem-error" style="display:none;color:var(--red)">Avval oyni tanlang.</div>
+            </div>
+            <div class="mb-3"><label class="form-label">Izoh</label><textarea name="note" class="form-control" rows="2" placeholder="Ixtiyoriy"></textarea></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Bekor qilish</button><button type="submit" class="btn btn-primary-custom">💾 Saqlash</button></div>
+    </form>
+</div></div></div>
+
+<!-- Tahrirlash modali -->
+<div class="modal fade" id="editRemModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" id="editRemForm">
+        <div class="modal-header"><h5 class="modal-title">Eslatmani tahrirlash</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">Sarlavha *</label><input type="text" name="title" id="er_title" class="form-control" required></div>
+            <div class="mb-3">
+                <label class="form-label">Oy *</label>
+                <div class="month-grid" id="erMonthGrid">
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="8">Avg</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="9">Sen</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="10">Okt</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="11">Noy</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="12">Dek</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="1">Yan</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="2">Fev</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="3">Mar</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="4">Apr</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="5">May</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="6">Iyn</label>
+                    <label class="month-pill"><input type="radio" name="et_rem_month" value="7">Iyl</label>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Kun / Yil / Soat <span class="rem-weekday hint ms-1"></span></label>
+                <div class="d-flex gap-2">
+                    <input type="number" class="form-control rem-day" id="er_day" min="1" max="31" style="max-width:90px" title="Kun">
+                    <input type="number" class="form-control rem-year" id="er_year" min="2020" max="2100" style="max-width:110px" title="Yil">
+                    <input type="number" class="form-control rem-hour" id="er_hour" min="0" max="23" style="max-width:90px" title="Soat">
+                    <input type="number" class="form-control rem-min" id="er_min" min="0" max="59" style="max-width:90px" title="Daqiqa">
+                </div>
+                <input type="hidden" name="remind_at" class="rem-at">
+                <div class="hint mt-1 rem-error" style="display:none;color:var(--red)">Avval oyni tanlang.</div>
+            </div>
+            <div class="mb-3"><label class="form-label">Izoh</label><textarea name="note" id="er_note" class="form-control" rows="2"></textarea></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Bekor qilish</button><button type="submit" class="btn btn-primary-custom">💾 Saqlash</button></div>
+    </form>
+</div></div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function editReminder(id) {
+    const r = await fetch('/api/reminder/' + id);
+    const d = await r.json();
+    document.getElementById('editRemForm').action = '/reminders/' + id + '/update';
+    document.getElementById('er_title').value = d.title;
+    const dt = new Date(d.datetime_input);
+    document.querySelectorAll('#erMonthGrid input[type="radio"]').forEach(function (rb) {
+        rb.checked = parseInt(rb.value) === dt.getMonth() + 1;
+    });
+    syncMonthPills('erMonthGrid');
+    document.getElementById('er_day').value = dt.getDate();
+    document.getElementById('er_year').value = dt.getFullYear();
+    document.getElementById('er_hour').value = dt.getHours();
+    document.getElementById('er_min').value = dt.getMinutes();
+    document.getElementById('er_note').value = d.note || '';
+    updateRemWeekday(document.getElementById('editRemForm'));
+    new bootstrap.Modal(document.getElementById('editRemModal')).show();
+}
+</script>
+{% endblock %}

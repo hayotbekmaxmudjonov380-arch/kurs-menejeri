@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}To'lovlar — Kurs Manager{% endblock %}
+{% block content %}
+<style>
+    .mp-cell {
+        min-width: 64px; min-height: 64px; border-radius: 14px; border: 1px solid var(--border);
+        background: var(--panel-alt); color: var(--text-faint);
+        font-size: 20px; font-weight: 800; cursor: pointer; transition: all .12s;
+        display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+        padding: 4px 6px; line-height: 1.2;
+    }
+    .mp-cell:hover { border-color: var(--primary); transform: scale(1.08); }
+    .mp-cell.st-1 { background: #189a52; border-color: #189a52; color: #fff; }
+    .mp-cell.st-0 { background: #e0324b; border-color: #e0324b; color: #fff; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">To'lovlar</div>
+        <div class="page-sub" id="payStats">Oylik to'lov jurnali — {{ year }}-yil: ✓ {{ stats.paid }} ta to'lov • ✗ {{ stats.unpaid }} ta to'lanmagan • 💰 {{ stats.collected|int }} so'm yig'ilgan</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('payments_page', year=year-1, search=search) }}" class="btn btn-ghost">‹ Oldingi yil</a>
+        <span class="date-badge">{{ year }}</span>
+        <a href="{{ url_for('payments_page', year=year+1, search=search) }}" class="btn btn-ghost">Keyingi yil ›</a>
+    </div>
+</div>
+
+<!-- Qidiruv -->
+<form method="get" class="d-flex ms-auto gap-2 mb-3" style="max-width:340px">
+    <input type="hidden" name="year" value="{{ year }}">
+    <div class="ref-search">
+        <i class="bi bi-search"></i>
+        <input type="text" name="search" autocomplete="off" placeholder="F.I.Sh yoki telefon raqamini qidiring..." value="{{ search }}">
+    </div>
+</form>
+
+<div class="card-dark p-0">
+    <div class="table-responsive">
+        <table class="table table-dark-custom" style="min-width:1100px">
+            <thead>
+                <tr>
+                    <th style="min-width:200px">F.I.Sh</th>
+                    <th>Kelgan sana</th>
+                    {% for mnum, mname in month_pairs %}<th class="text-center">{{ mname }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for st in students %}
+                {% set parts = st.full_name.split() %}
+                {% set initials = ((parts[0][0] + parts[1][0]) if parts|length > 1 else parts[0][:2]) | upper %}
+                <tr>
+                    <td><span class="name-cell"><span class="avatar-sm">{{ initials }}</span>{{ st.full_name }}</span></td>
+                    <td>{{ st.created_display }}</td>
+                    {% for mnum, mname in month_pairs %}
+                    {% set v = matrix[st.id][mnum] %}
+                    {% set is_paid = (v is mapping and v.paid is true) or (v is true) %}
+                    {% set is_unpaid = (v is mapping and v.paid is false) or (v is false) %}
+                    {% set amt = (v.amount if v is mapping else 0) %}
+                    <td class="text-center">
+                        <span class="mp-cell {% if is_paid %}st-1{% elif is_unpaid %}st-0{% else %}st-none{% endif %}"
+                            data-sid="{{ st.id }}" data-month="{{ mnum }}"
+                            onclick="openPayCard(this)" title="{% if is_paid and amt > 0 %}{{ amt|int }} so'm{% else %}To'lov kartochkasi{% endif %}">{% if is_paid %}✓{% elif is_unpaid %}✗{% else %}—{% endif %}</span>
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                {% if not students %}<tr><td colspan="14" class="text-center py-4" style="color:var(--text-faint)">O'quvchilar yo'q</td></tr>{% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- To'lov kartochkasi modali -->
+<div class="modal fade" id="payCardModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="payCardTitle">To'lov</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <div class="mb-1" id="payCardName" style="font-weight:700"></div>
+        <div class="mb-3"><label class="form-label">Oylik narx</label><div class="form-control" id="payCardFee">—</div></div>
+        <div class="mb-3"><label class="form-label">To'langan summa *</label><input type="text" inputmode="numeric" id="payCardAmount" class="form-control money-input" placeholder="Masalan: 150 000"></div>
+        <div class="hint mt-1" id="payCardError" style="display:none;color:var(--red)">To'langan summani kiriting.</div></div>
+    </div>
+    <div class="modal-footer" style="flex-wrap:wrap;gap:8px">
+        <button type="button" class="btn btn-danger-custom btn-sm" onclick="payCardUnpaid()">✗ To'lamadi</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="payCardClear()">🗑 Tozalash</button>
+        <button type="button" class="btn btn-primary-custom btn-sm" onclick="payCardSave()">💾 Saqlash</button>
+    </div>
+</div></div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PAY_YEAR = {{ year }};
+let payCardSid = null, payCardMonth = null, payCardFee = 0;
+
+function fmtMoney(n) {
+    return Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+function payCardCalc() {
+    // foiz endi ko'rsatilmaydi — faqat summa saqlanadi
+}
+async function openPayCard(el) {
+    payCardSid = parseInt(el.getAttribute('data-sid'));
+    payCardMonth = parseInt(el.getAttribute('data-month'));
+    try {
+        const r = await fetch('/api/monthly-payment/detail?student_id=' + payCardSid + '&year=' + PAY_YEAR + '&month=' + payCardMonth);
+        const d = await r.json();
+        if (d.error) return;
+        payCardFee = d.fee || 0;
+        document.getElementById('payCardTitle').textContent = d.month_name + ' ' + PAY_YEAR;
+        document.getElementById('payCardName').textContent = d.full_name;
+        document.getElementById('payCardFee').textContent = fmtMoney(payCardFee) + " so'm";
+        const amtEl = document.getElementById('payCardAmount');
+        amtEl.value = d.amount > 0 ? fmtMoney(d.amount) : '';
+        payCardCalc();
+        new bootstrap.Modal(document.getElementById('payCardModal')).show();
+    } catch (e) {}
+}
+document.getElementById('payCardAmount').addEventListener('input', function () {
+    const pos = this.selectionStart || 0;
+    const before = this.value.slice(0, pos).replace(/\D/g, '').length;
+    const digits = this.value.replace(/\D/g, '');
+    this.value = fmtMoney(digits === '' ? 0 : parseInt(digits));
+    if (digits === '') this.value = '';
+    let seen = 0, newPos = this.value.length;
+    if (before === 0) { newPos = 0; }
+    else {
+        for (let i = 0; i < this.value.length; i++) {
+            if (/\d/.test(this.value[i])) { seen++; if (seen === before) { newPos = i + 1; break; } }
+        }
+    }
+    try { this.setSelectionRange(newPos, newPos); } catch (e) {}
+    payCardCalc();
+});
+async function payCardPost(paid, amount) {
+    const r = await fetch('/api/monthly-payments/set', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({student_id: payCardSid, year: PAY_YEAR, month: payCardMonth, paid: paid, amount: amount})
+    });
+    return await r.json();
+}
+function payCardRefreshCell(state, amount) {
+    document.querySelectorAll('.mp-cell[data-sid="' + payCardSid + '"][data-month="' + payCardMonth + '"]').forEach(function (el) {
+        el.className = 'mp-cell ' + (state === '1' ? 'st-1' : state === '0' ? 'st-0' : 'st-none');
+        if (state === '1') {
+            el.textContent = '✓';
+            el.title = amount > 0 ? fmtMoney(amount) + " so'm" : 'To\'lov kartochkasi';
+        } else if (state === '0') {
+            el.textContent = '✗';
+        } else {
+            el.textContent = '—';
+        }
+    });
+}
+function payCardUpdateStats(d) {
+    const el = document.getElementById('payStats');
+    if (el && d.paid !== undefined) {
+        el.textContent = "Oylik to'lov jurnali — " + PAY_YEAR + "-yil: ✓ " + d.paid + " ta to'lov • ✗ " + d.unpaid + " ta to'lanmagan • 💰 " + fmtMoney(d.collected || 0) + " so'm yig'ilgan";
+    }
+}
+function payCardHide() {
+    const m = bootstrap.Modal.getInstance(document.getElementById('payCardModal'));
+    if (m) m.hide();
+}
+function payCardShowError(msg) {
+    const el = document.getElementById('payCardError');
+    el.textContent = msg || "To'langan summani kiriting.";
+    el.style.display = 'block';
+}
+function payCardHideError() {
+    document.getElementById('payCardError').style.display = 'none';
+}
+async function payCardSave() {
+    const raw = (document.getElementById('payCardAmount').value || '').replace(/\s/g, '');
+    const amt = parseFloat(raw) || 0;
+    if (!(amt > 0)) {
+        payCardShowError();
+        return;
+    }
+    payCardHideError();
+    const d = await payCardPost(true, amt);
+    if (d.error) { payCardShowError(d.error); return; }
+    payCardRefreshCell(d.state, amt);
+    payCardUpdateStats(d);
+    payCardHide();
+}
+async function payCardUnpaid() {
+    const d = await payCardPost(false, 0);
+    if (d.error) return;
+    payCardRefreshCell(d.state, 0);
+    payCardUpdateStats(d);
+    payCardHide();
+}
+async function payCardClear() {
+    const d = await payCardPost(null, 0);
+    if (d.error) return;
+    payCardRefreshCell(d.state, 0);
+    payCardUpdateStats(d);
+    payCardHide();
+}
+</script>
+{% endblock %}

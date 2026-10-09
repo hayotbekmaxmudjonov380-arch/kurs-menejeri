@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Kurs Manager</string>
+    <string name="menu_dashboard">Bosh sahifa</string>
+    <string name="menu_students">O\'quvchilar</string>
+    <string name="menu_payments">To\'lovlar</string>
+    <string name="menu_tests">Test natijalari</string>
+    <string name="menu_attendance">Davomat</string>
+    <string name="menu_reminders">Eslatmalar</string>
+    <string name="menu_reports">Hisobotlar</string>
+    <string name="menu_pairing">Kompyuterga ulash</string>
+    <string name="menu_sync">Sinxronlash</string>
+</resources>

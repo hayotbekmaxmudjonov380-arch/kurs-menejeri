@@ -1,0 +1,4 @@
+PySide2==5.15.2.1
+SQLAlchemy>=2.0,<3
+PyInstaller>=5.0,<7
+reportlab>=3.5,<5

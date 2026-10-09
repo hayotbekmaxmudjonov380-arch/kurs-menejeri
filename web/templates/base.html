@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kurs Manager{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('logo') }}">
+    <script>
+        try {
+            if (localStorage.getItem('km-theme') === 'light') {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        } catch (e) {}
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #080d19;
+            --bg-dark: #060a14;
+            --panel: #0e1628;
+            --panel-alt: #131c33;
+            --border: #1c2742;
+            --border-soft: #243357;
+            --text: #e8eef7;
+            --text-dim: #93a1bd;
+            --text-faint: #5b6b8c;
+            --heading: #ffffff;
+            --input-bg: #0f1830;
+            --header-bg: #101a30;
+            --row-border: #1b2745;
+            --table-color: #c7d2e8;
+            --avatar-bg: #c3d4f5;
+            --avatar-fg: #1e3a8a;
+            --sidebar-border: #101828;
+            --hover-bg: #253252;
+            --track: #1c2742;
+            color-scheme: dark;
+        }
+        [data-theme="light"] {
+            --bg: #eef2f8;
+            --bg-dark: #ffffff;
+            --panel: #ffffff;
+            --panel-alt: #e7edf5;
+            --border: #d5deec;
+            --border-soft: #c2cfe2;
+            --text: #101f36;
+            --text-dim: #4c5d78;
+            --text-faint: #8595ad;
+            --heading: #0b1830;
+            --input-bg: #ffffff;
+            --header-bg: #e7edf5;
+            --row-border: #e0e7f2;
+            --table-color: #33415c;
+            --avatar-bg: #d9e6fb;
+            --avatar-fg: #1d4ed8;
+            --sidebar-border: #e0e7f2;
+            --hover-bg: #e2e9f4;
+            --track: #dde5f0;
+            color-scheme: light;
+        }
+        [data-theme="light"] .btn-close { filter: none; }
+        [data-theme="light"] .sidenav a.active .nav-count { background: #1d4ed8; color: #fff; }
+            --primary: #2b7fff;
+            --primary-dark: #1d4ed8;
+            --primary-hover: #1d6ff2;
+            --green: #22c55e;
+            --green-dark: #16a34a;
+            --yellow: #f5a80b;
+            --red: #f0435a;
+            --red-dark: #dc2626;
+        }
+        * { font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* Sidebar (referens dizayn) */
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 210px; height: 100vh;
+            background: var(--bg-dark); border-right: 1px solid var(--sidebar-border);
+            padding: 18px 14px; display: flex; flex-direction: column; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+        .brand-logo {
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+            background: linear-gradient(135deg, #2b7fff, #1d4ed8);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 20px;
+        }
+        .sidebar-title { color: var(--heading); font-size: 16px; font-weight: 800; margin-bottom: 1px; }
+        .sidebar-sub { color: var(--text-faint); font-size: 10px; }
+        .sidenav { display: flex; flex-direction: column; gap: 4px; }
+        .sidenav a {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 14px; border-radius: 12px;
+            color: var(--text-dim); font-size: 14px; font-weight: 600;
+            text-decoration: none; position: relative; transition: all .15s;
+        }
+        .sidenav a i { font-size: 18px; line-height: 1; }
+        .sidenav a:hover { background: rgba(130,150,180,.12); color: var(--heading); }
+        .sidenav a.active {
+            background: linear-gradient(90deg, #1d4ed8, #2b7fff);
+            color: #fff;
+        }
+        .sidenav a.active::after {
+            content: ""; position: absolute; right: -14px; top: 9px; bottom: 9px;
+            width: 4px; border-radius: 4px; background: #3b82f6;
+        }
+        .nav-count {
+            margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px;
+            border-radius: 11px; background: var(--red); color: #fff;
+            font-size: 11px; font-weight: 800;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .sidenav a.active .nav-count { background: rgba(255,255,255,.9); color: #1d4ed8; }
+
+        /* Push-habar toast (o'ng pastki burchak) */
+        #toastBox {
+            position: fixed; right: 20px; bottom: 20px; z-index: 2000;
+            display: flex; flex-direction: column; gap: 10px; max-width: 360px;
+        }
+        .rem-toast {
+            background: var(--header-bg); border: 1px solid var(--primary);
+            border-left: 5px solid var(--primary);
+            border-radius: 14px; padding: 14px 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.55);
+            animation: toastIn .3s ease-out;
+        }
+        @keyframes toastIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .rem-toast .t-title { color: var(--heading); font-weight: 800; font-size: 14px; margin-bottom: 2px; }
+        .rem-toast .t-time { color: var(--primary); font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+        .rem-toast .t-note { color: var(--text-dim); font-size: 12px; margin-bottom: 10px; word-break: break-word; }
+        .sidebar-footer {
+            margin-top: auto; padding: 10px 12px; background: transparent;
+            border: 1px solid var(--border); border-radius: 12px;
+            display: flex; align-items: center; gap: 10px; cursor: pointer;
+        }
+        .sidebar-footer:hover { border-color: var(--primary); }
+        .avatar {
+            width: 36px; height: 36px; border-radius: 50%; display: flex; flex-shrink: 0;
+            align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
+            background: linear-gradient(135deg, #2b7fff, #1d4ed8); color: #fff;
+        }
+
+        /* Main */
+        .main { margin-left: 210px; padding: 18px 26px 26px; min-height: 100vh; }
+
+        /* Topbar (referens) */
+        .topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+        .topbar-search { flex: 1; max-width: 640px; margin: 0 auto; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+        .icon-btn {
+            position: relative; width: 40px; height: 40px; border-radius: 12px;
+            background: transparent; border: 1px solid transparent; color: var(--text-dim);
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .icon-btn:hover { background: var(--panel-alt); color: var(--heading); }
+        .icon-btn .dot {
+            position: absolute; top: 9px; right: 11px; width: 8px; height: 8px;
+            border-radius: 50%; background: var(--primary); border: 2px solid var(--bg);
+        }
+        .date-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--panel-alt); border: 1px solid var(--border);
+            border-radius: 12px; padding: 9px 14px; font-size: 13px; font-weight: 600;
+            color: var(--text); white-space: nowrap;
+        }
+        .date-badge i { color: var(--text-dim); }
+
+        /* Stat kartalar (referens — rangli tint) */
+        .stat {
+            display: flex; align-items: flex-start; gap: 14px;
+            border-radius: 16px; padding: 18px; margin-bottom: 12px;
+            border: 1px solid transparent;
+        }
+        .stat-blue { background: rgba(43,127,255,.13); border-color: rgba(43,127,255,.25); }
+        .stat-green { background: rgba(34,197,94,.13); border-color: rgba(34,197,94,.25); }
+        .stat-amber { background: rgba(245,168,11,.13); border-color: rgba(245,168,11,.28); }
+        .stat-red { background: rgba(240,67,90,.13); border-color: rgba(240,67,90,.28); }
+        .stat-icon {
+            width: 46px; height: 46px; border-radius: 14px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: #fff;
+        }
+        .stat-blue .stat-icon { background: #2b7fff; }
+        .stat-green .stat-icon { background: #22c55e; }
+        .stat-amber .stat-icon { background: #f5a80b; }
+        .stat-red .stat-icon { background: #f0435a; }
+        .stat .stat-label { color: var(--text-dim); font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .stat .stat-value { font-size: 26px; font-weight: 800; color: var(--heading); line-height: 1.1; }
+        .stat .stat-trend { color: #4ade80; font-size: 12px; font-weight: 700; margin-top: 2px; }
+
+        /* Solid badge'lar (referens) */
+        .sbadge {
+            display: inline-flex; align-items: center; gap: 6px;
+            border-radius: 8px; padding: 6px 12px;
+            font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap;
+        }
+        .sbadge i { font-size: 13px; }
+        .sbadge-green { background: #189a52; }
+        .sbadge-blue { background: #2b7fff; }
+        .sbadge-red { background: #e0324b; }
+        .sbadge-amber { background: #d9930d; }
+
+        /* Avatar bosh harflar */
+        .avatar-sm {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            background: var(--avatar-bg); color: var(--avatar-fg);
+            display: inline-flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 12px; margin-right: 10px;
+        }
+        .name-cell { display: flex; align-items: center; font-weight: 600; color: var(--text); }
+
+        /* Filtr panel (referens) */
+        .filter-bar {
+            display: flex; gap: 12px; margin-bottom: 14px;
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 14px; padding: 12px;
+        }
+        .filter-bar .ref-search { flex: 2; }
+        .filter-select {
+            flex: 1; background: var(--header-bg); border: 1px solid var(--border);
+            border-radius: 12px; color: var(--text); font-size: 13px; font-weight: 600;
+            padding: 11px 14px; min-width: 150px;
+        }
+        .filter-select:focus { border-color: var(--primary); outline: none; }
+        .filter-select option { background: var(--panel); }
+        .btn-filter {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--panel-alt); border: 1px solid var(--border);
+            border-radius: 12px; padding: 11px 20px; color: var(--text);
+            font-size: 13px; font-weight: 700;
+        }
+        .btn-filter:hover { border-color: var(--primary); color: var(--heading); }
+
+        /* Jadval footeri + pagination (referens) */
+        .table-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 6px 2px; color: var(--text-dim); font-size: 13px;
+        }
+        .pagination-ref { display: flex; align-items: center; gap: 6px; }
+        .pagination-ref a, .pagination-ref span.cur {
+            min-width: 34px; height: 34px; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 700; text-decoration: none;
+            color: var(--text-dim); background: transparent; border: 1px solid transparent;
+        }
+        .pagination-ref a:hover { background: var(--panel-alt); color: var(--heading); }
+        .pagination-ref span.cur { background: var(--primary); color: #fff; }
+        .pagination-ref span.disabled { opacity: .35; }
+
+        /* Cards */
+        .card-dark {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px; margin-bottom: 12px;
+        }
+        .stat-card { text-align: left; }
+        .stat-card .stat-label { color: var(--text-faint); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .stat-card .stat-value { font-size: 26px; font-weight: 800; }
+
+        /* Buttons */
+        .btn-primary-custom {
+            background: #2b7fff; color: #fff; border: none;
+            border-radius: 10px; padding: 11px 20px; font-size: 14px; font-weight: 700;
+            white-space: nowrap;
+        }
+        .btn-primary-custom:hover { background: #1d6ff2; color: #fff; }
+        .btn-success-custom { background: var(--green-dark); color: #fff; border: none; border-radius: 8px; }
+        .btn-success-custom:hover { background: var(--green); color: #fff; }
+        .btn-warning-custom { background: #d97706; color: #fff; border: none; border-radius: 8px; }
+        .btn-warning-custom:hover { background: var(--yellow); color: #fff; }
+        .btn-danger-custom { background: var(--red-dark); color: #fff; border: none; border-radius: 8px; }
+        .btn-danger-custom:hover { background: var(--red); color: #fff; }
+        .btn-ghost {
+            background: transparent; color: var(--text); border: 1px solid var(--border);
+            border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+        }
+        .btn-ghost:hover { background: var(--panel-alt); border-color: var(--primary); color: var(--heading); }
+        .btn-chip {
+            background: transparent; color: var(--text-dim); border: 1px solid var(--border);
+            border-radius: 999px; padding: 7px 16px; font-size: 12px; font-weight: 600;
+        }
+        .btn-chip:hover { border-color: var(--primary); color: var(--text); }
+        .btn-chip.active { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+        .btn-sm-action {
+            background: var(--panel-alt); color: var(--text); border: 1px solid var(--border);
+            border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600;
+        }
+        .btn-sm-action:hover { background: var(--hover-bg); border-color: var(--primary); color: var(--heading); }
+
+        /* Tables */
+        .table-dark-custom {
+            --bs-table-bg: transparent; --bs-table-color: var(--table-color);
+            margin-bottom: 0;
+        }
+        .table-dark-custom thead th {
+            background: var(--header-bg); color: var(--text-faint); font-size: 11px;
+            font-weight: 700; border: none; padding: 12px 10px; white-space: nowrap;
+        }
+        .table-dark-custom tbody td {
+            border-bottom: 1px solid var(--row-border); padding: 10px; font-size: 13px;
+            vertical-align: middle;
+        }
+        .table-dark-custom tbody tr:hover { background: rgba(59,130,246,.06); }
+
+        /* Badges */
+        .badge-paid { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 700; }
+
+        .badge-unpaid { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.3); border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 700; }
+        .badge-active { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; }
+        .badge-inactive { background: rgba(100,116,139,.12); color: var(--text-dim); border: 1px solid rgba(100,116,139,.3); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; }
+
+        /* Inputs */
+        .form-control, .form-select {
+            background: var(--input-bg); border: 1px solid var(--border-soft);
+            border-radius: 8px; color: var(--text); font-size: 13px; padding: 9px 12px;
+        }
+        .form-control:focus, .form-select:focus {
+            background: var(--input-bg); border-color: var(--primary); color: var(--text);
+            box-shadow: 0 0 0 2px rgba(59,130,246,.15);
+        }
+        .form-control::placeholder { color: var(--text-faint); }
+        .form-label { color: var(--text-dim); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .form-select option { background: var(--panel); color: var(--text); }
+
+        /* Modal */
+        .modal-content { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; }
+        .modal-header { border-bottom: 1px solid var(--border); }
+        .modal-footer { border-top: 1px solid var(--border); }
+        .modal-title { color: var(--heading); font-weight: 700; }
+        .btn-close { filter: invert(1); }
+
+        /* Flash */
+        .flash-success { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 10px; padding: 10px 16px; margin-bottom: 12px; }
+        .flash-error { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.3); border-radius: 10px; padding: 10px 16px; margin-bottom: 12px; }
+
+        /* Hint */
+        .hint { color: var(--text-faint); font-size: 11px; }
+
+        /* Page title */
+        .page-title { color: var(--heading); font-size: 28px; font-weight: 800; margin-bottom: 2px; }
+        .page-sub { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
+
+        .dropdown-menu-dark-custom {
+            background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+            padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,.4);
+        }
+        .dropdown-menu-dark-custom .dropdown-item {
+            color: var(--text); border-radius: 6px; padding: 7px 16px; font-size: 12px;
+        }
+        .dropdown-menu-dark-custom .dropdown-item:hover { background: var(--primary-dark); color: #fff; }
+        .dropdown-menu-dark-custom .dropdown-divider { border-color: var(--border); }
+
+        /* Qidiruv (referens dizayn — to'q yumaloq) */
+        .ref-search {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--header-bg); border: 1px solid var(--border);
+            border-radius: 12px; padding: 11px 16px; width: 100%;
+        }
+        .ref-search:focus-within { border-color: var(--primary); }
+        .ref-search i { color: var(--text-faint); font-size: 16px; }
+        .ref-search input {
+            background: transparent; border: none; outline: none;
+            color: var(--text); font-size: 14px; width: 100%;
+        }
+        .ref-search input::placeholder { color: var(--text-faint); }
+        .ref-search input:-webkit-autofill,
+        .ref-search input:-webkit-autofill:hover,
+        .ref-search input:-webkit-autofill:focus {
+            -webkit-text-fill-color: var(--text);
+            -webkit-box-shadow: 0 0 0 1000px var(--header-bg) inset;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* Oy tanlash pill-grid (zamonaviy) */
+        .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+        .month-pill {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            padding: 10px 4px; margin: 0; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--panel-alt);
+            color: var(--text-dim); font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: all .15s; user-select: none;
+        }
+        .month-pill:hover { border-color: var(--primary); color: var(--text); }
+        .month-pill.active {
+            background: rgba(34,197,94,.14); border-color: var(--green); color: var(--green);
+        }
+        .month-pill.active::after { content: "✓"; font-weight: 800; }
+        .month-pill input { display: none; }
+        @media (max-width: 576px) { .month-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        /* Jadval ichidagi dropdown kesilib qolmasligi uchun */
+        .table-responsive.dropdown-open { overflow: visible !important; }
+        .table-responsive { padding-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="brand">
+            <div class="brand-logo"><i class="bi bi-mortarboard-fill"></i></div>
+            <div>
+                <div class="sidebar-title">Kurs Manager</div>
+                <div class="sidebar-sub">O'quvchilarni boshqarish tizimi</div>
+            </div>
+        </div>
+
+        <div class="sidenav">
+        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="bi bi-house-fill"></i>
+            <span>Bosh sahifa</span>
+        </a>
+        <a href="{{ url_for('students_page') }}" class="{% if request.endpoint == 'students_page' %}active{% endif %}">
+            <i class="bi bi-people-fill"></i>
+            <span>Ro'yxatga olish</span>
+        </a>
+        <a href="{{ url_for('groups_page') }}" class="{% if request.endpoint in ('groups_page', 'group_members_page') %}active{% endif %}">
+            <i class="bi bi-collection-fill"></i>
+            <span>Guruhlar</span>
+        </a>
+        <a href="{{ url_for('payments_page') }}" class="{% if request.endpoint == 'payments_page' %}active{% endif %}">
+            <i class="bi bi-wallet2"></i>
+            <span>To'lovlar</span>
+        </a>
+        <a href="{{ url_for('tests_page') }}" class="{% if request.endpoint == 'tests_page' %}active{% endif %}">
+            <i class="bi bi-clipboard-check-fill"></i>
+            <span>Test natijalari</span>
+        </a>
+        <a href="{{ url_for('attendance_page') }}" class="{% if request.endpoint == 'attendance_page' %}active{% endif %}">
+            <i class="bi bi-calendar-check-fill"></i>
+            <span>Davomat</span>
+        </a>
+        <a href="{{ url_for('reminders_page') }}" class="{% if request.endpoint == 'reminders_page' %}active{% endif %}">
+            <i class="bi bi-bell-fill"></i>
+            <span>Eslatmalar</span>
+            <span class="nav-count" id="reminderCount" style="display:none">0</span>
+        </a>
+        <a href="{{ url_for('reports_page') }}" class="{% if request.endpoint == 'reports_page' %}active{% endif %}">
+            <i class="bi bi-bar-chart-fill"></i>
+            <span>Hisobotlar</span>
+        </a>
+        </div>
+
+        <div class="sidebar-footer mt-auto">
+            <div class="avatar">FA</div>
+            <div style="flex:1;min-width:0">
+                <div style="color:var(--heading);font-size:13px;font-weight:700;white-space:nowrap">Farziddin Aminov</div>
+                <div style="color:var(--text-faint);font-size:11px">O'qituvchi</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+        <!-- Topbar -->
+        <div class="topbar">
+            <form action="{{ url_for('students_page') }}" method="get" class="topbar-search">
+                <div class="ref-search">
+                    <i class="bi bi-search"></i>
+                    <input type="text" name="search" autocomplete="off" placeholder="F.I.Sh yoki telefon raqamini qidiring..." value="{{ search if search is defined else '' }}">
+                </div>
+            </form>
+            <div class="topbar-right">
+                <button class="icon-btn" id="themeToggle" title="Kunduzgi / Tungi rejim"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
+                <button class="icon-btn" title="Bildirishnomalar"><i class="bi bi-bell"></i><span class="dot"></span></button>
+                <span class="date-badge"><i class="bi bi-calendar3"></i> {{ now().strftime('%d.%m.%Y') }}</span>
+            </div>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-{{ category }}">
+                        {% if category == 'success' %}✅{% else %}⚠️{% endif %} {{ message }}
+                        <button type="button" class="btn-close" style="float:right;font-size:16px;filter:none;background:none;border:none;color:inherit" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="toastBox"></div>
+    <script>
+        // ===== Kunduzgi / Tungi rejim =====
+        function applyTheme(t) {
+            document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+            var icon = document.getElementById('themeIcon');
+            if (icon) icon.className = (t === 'light') ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+            try { localStorage.setItem('km-theme', (t === 'light') ? 'light' : 'dark'); } catch (e) {}
+        }
+        (function () {
+            var saved = 'dark';
+            try { saved = localStorage.getItem('km-theme') || 'dark'; } catch (e) {}
+            applyTheme(saved);
+            var btn = document.getElementById('themeToggle');
+            if (btn) btn.addEventListener('click', function () {
+                var cur = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                applyTheme(cur);
+            });
+        })();
+    </script>
+    <script>
+        // Jadval ichidagi "Amallar" menyusi kesilib qolmasligi uchun:
+        // menyu ochilganda ota .table-responsive overflow'ini vaqtincha ochamiz
+        document.addEventListener('show.bs.dropdown', function (e) {
+            var box = e.target.closest('.table-responsive');
+            if (box) box.classList.add('dropdown-open');
+        });
+        document.addEventListener('hide.bs.dropdown', function (e) {
+            var box = e.target.closest('.table-responsive');
+            if (box) box.classList.remove('dropdown-open');
+        });
+
+        // ===== O'quvchi ma'lumotlari oynasi (Yangi o'quvchi dizaynida) =====
+        async function showStudentDetail(id) {
+            const r = await fetch('/api/student/' + id);
+            const s = await r.json();
+            window._detailId = id;
+            document.getElementById('detailTitle').textContent = s.full_name;
+
+            const badge = s.payment_status === 'paid'
+                ? '<span class="badge-paid">🟢 To\'lov qilingan</span>'
+                : '<span class="badge-unpaid">🔴 To\'lov qilinmagan</span>';
+            const feeText = (s.fee && s.fee > 0) ? s.fee.toLocaleString('uz-UZ') + ' so\'m' : '—';
+            const totalText = (s.total_price && s.total_price > 0) ? s.total_price.toLocaleString('uz-UZ') + ' so\'m' : '—';
+            const paidText = (s.paid_amount && s.paid_amount > 0) ? s.paid_amount.toLocaleString('uz-UZ') + ' so\'m' : '0 so\'m';
+
+            let html = '';
+            html += '<div class="mb-3"><label class="form-label">Telefon</label><div class="form-control">' + (s.phone || '—') + '</div></div>';
+            html += '<div class="mb-3"><label class="form-label">Sinf</label><div class="form-control">' + (s.grade || '—') + '</div></div>';
+            html += '<div class="mb-3"><label class="form-label">Kurs</label><div class="form-control" style="font-weight:700;letter-spacing:1px">KIMYO</div></div>';
+            html += '<div class="mb-3"><label class="form-label">To\'lov miqdori (so\'m)</label><div class="form-control">' + feeText + '</div></div>';
+            html += '<div class="row"><div class="col-6 mb-3"><label class="form-label">Umumiy kurs narxi</label><div class="form-control">' + totalText + '</div></div>';
+            html += '<div class="col-6 mb-3"><label class="form-label">To\'langan summa</label><div class="form-control">' + paidText + '</div></div></div>';
+            html += '<div class="mb-3"><label class="form-label">To\'langan foiz</label><div class="form-control" style="font-weight:800">' + (s.paid_percent || 0) + '%</div></div>';
+            html += '<div class="mb-3"><label class="form-label">To\'lov muddati</label><div class="form-control">📅 ' + s.due_display + ' — ' + escapeHtml(s.due_label) + '</div></div>';
+            html += '<div class="mb-3"><label class="form-label">To\'lov holati</label><div>' + badge + '</div></div>';
+            html += '<div class="mb-3"><label class="form-label">Qo\'shilgan sana</label><div class="form-control">' + s.created_display + '</div></div>';
+            html += '<div class="mb-3"><label class="form-label">Izoh</label><div class="form-control" style="min-height:60px">' + (s.note || 'Izoh yo\'q') + '</div></div>';
+            html += '<div class="mb-1"><label class="form-label">To\'lov tarixi</label>';
+            html += '<table class="table table-dark-custom"><thead><tr><th>Sana</th><th>Summa</th><th>Holat</th></tr></thead><tbody>';
+            for (const p of s.payments) {
+                html += '<tr><td>' + p.date_display + '</td><td>' + (p.amount > 0 ? p.amount.toLocaleString('uz-UZ') + ' so\'m' : '—') + '</td>';
+                html += '<td>' + (p.status === 'paid' ? '<span class="badge-paid">🟢 To\'langan</span>' : '<span class="badge-unpaid">🔴 To\'lanmagan</span>') + '</td></tr>';
+            }
+            if (!s.payments.length) html += '<tr><td colspan="3" class="text-center" style="color:var(--text-faint)">Tarix yo\'q</td></tr>';
+            html += '</tbody></table></div>';
+            document.getElementById('detailBody').innerHTML = html;
+
+            let foot = '<div class="d-flex gap-2 flex-wrap">';
+            foot += '<div class="ms-auto d-flex gap-2">';
+            foot += '<button class="btn btn-ghost btn-sm" onclick="detailEdit()">✏️ Tahrirlash</button>';
+            foot += '<button class="btn btn-danger-custom btn-sm" onclick="detailDelete()">🗑 O\'chirish</button>';
+            foot += '<button class="btn btn-ghost btn-sm" data-bs-dismiss="modal">Yopish</button>';
+            foot += '</div></div>';
+            document.getElementById('detailFooter').innerHTML = foot;
+
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        }
+
+        async function detailDelete() {
+            if (!confirm("Ushbu o'quvchini o'chirishni xohlaysizmi?")) return;
+            await fetch('/students/' + window._detailId + '/delete', {method: 'POST'});
+            location.reload();
+        }
+
+        function detailEdit() {
+            const id = window._detailId;
+            const m = bootstrap.Modal.getInstance(document.getElementById('detailModal'));
+            if (m) m.hide();
+            setTimeout(() => editStudent(id), 200);
+        }
+
+        // ===== ESLATMALAR: push-habar tizimi =====
+        function requestNotifPermission() {
+            if (('Notification' in window) && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+        document.addEventListener('click', requestNotifPermission, {once: true});
+
+        function playBeep() {
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                const ctx = new AC();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.frequency.value = 880; o.type = 'sine';
+                const t = ctx.currentTime;
+                g.gain.setValueAtTime(0.001, t);
+                g.gain.exponentialRampToValueAtTime(0.5, t + 0.05);
+                g.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+                o.start(t); o.stop(t + 0.9);
+                setTimeout(() => {
+                    const o2 = ctx.createOscillator();
+                    const g2 = ctx.createGain();
+                    o2.connect(g2); g2.connect(ctx.destination);
+                    o2.frequency.value = 660; o2.type = 'sine';
+                    const t2 = ctx.currentTime;
+                    g2.gain.setValueAtTime(0.001, t2);
+                    g2.gain.exponentialRampToValueAtTime(0.5, t2 + 0.05);
+                    g2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.9);
+                    o2.start(t2); o2.stop(t2 + 0.9);
+                }, 450);
+            } catch (e) { /* audio yo'q */ }
+        }
+
+        function showRemToast(r) {
+            const box = document.getElementById('toastBox');
+            if (!box) return;
+            const el = document.createElement('div');
+            el.className = 'rem-toast';
+            el.innerHTML =
+                '<div class="t-title">🔔 ' + escapeHtml(r.title) + '</div>' +
+                '<div class="t-time">⏰ ' + escapeHtml(r.datetime_display) + '</div>' +
+                (r.note ? '<div class="t-note">' + escapeHtml(r.note) + '</div>' : '') +
+                '<div class="d-flex gap-2">' +
+                '<button class="btn btn-success-custom btn-sm" data-act="done">✓ Bajarildi</button>' +
+                '<button class="btn btn-ghost btn-sm" data-act="close">Yopish</button>' +
+                '</div>';
+            el.querySelector('[data-act="close"]').onclick = () => el.remove();
+            el.querySelector('[data-act="done"]').onclick = async () => {
+                const fd = new FormData();
+                await fetch('/reminders/' + r.id + '/toggle', {method: 'POST', body: fd});
+                el.remove();
+                updateReminderCount();
+            };
+            box.appendChild(el);
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 60000);
+        }
+
+        function escapeHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        async function checkReminders() {
+            try {
+                const r = await fetch('/api/reminders/due');
+                const list = await r.json();
+                if (!list.length) return;
+                playBeep();
+                for (const item of list) {
+                    if (('Notification' in window) && Notification.permission === 'granted') {
+                        try { new Notification('🔔 Eslatma: ' + item.title, {body: item.datetime_display + (item.note ? '\n' + item.note : '')}); } catch (e) {}
+                    }
+                    showRemToast(item);
+                }
+                updateReminderCount();
+            } catch (e) { /* server */ }
+            checkPaymentDues();
+        }
+
+        function showPayToast(item) {
+            const box = document.getElementById('toastBox');
+            if (!box) return;
+            const el = document.createElement('div');
+            el.className = 'rem-toast';
+            el.style.borderColor = '#2b7fff';
+            el.style.borderLeftColor = '#2b7fff';
+            el.innerHTML =
+                '<div class="t-title">💳 To\'lov eslatmasi</div>' +
+                '<div class="t-note" style="margin-top:4px">' + escapeHtml(item.text) + '</div>' +
+                '<div class="d-flex gap-2">' +
+                '<button class="btn btn-primary-custom btn-sm" data-act="go">To\'lovlar</button>' +
+                '<button class="btn btn-ghost btn-sm" data-act="close">Yopish</button>' +
+                '</div>';
+            el.querySelector('[data-act="close"]').onclick = () => el.remove();
+            el.querySelector('[data-act="go"]').onclick = () => { window.location.href = '/payments'; };
+            box.appendChild(el);
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 60000);
+        }
+
+        async function checkPaymentDues() {
+            try {
+                const r = await fetch('/api/payments/due');
+                const list = await r.json();
+                if (!list.length) return;
+                playBeep();
+                for (const item of list) {
+                    if (('Notification' in window) && Notification.permission === 'granted') {
+                        try { new Notification('💳 To\'lov eslatmasi', {body: item.text}); } catch (e) {}
+                    }
+                    showPayToast(item);
+                }
+            } catch (e) { /* server */ }
+        }
+
+        async function updateReminderCount() {
+            try {
+                const r = await fetch('/api/reminders/pending-count');
+                const d = await r.json();
+                const el = document.getElementById('reminderCount');
+                if (el) {
+                    if (d.count > 0) { el.textContent = d.count; el.style.display = 'inline-flex'; }
+                    else { el.style.display = 'none'; }
+                }
+            } catch (e) {}
+        }
+
+        setTimeout(checkReminders, 5000);
+        setInterval(checkReminders, 30000);
+        updateReminderCount();
+
+        // ===== Pul maydoni: mingliklarga ajratish (555555 -> 555 555) =====
+        function formatMoneyValue(digits) {
+            if (!digits) return '';
+            return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+        }
+        function bindMoneyInputs(root) {
+            (root || document).querySelectorAll('.money-input').forEach(function (el) {
+                if (el.dataset.moneyBound) return;
+                el.dataset.moneyBound = '1';
+                el.value = formatMoneyValue(String(el.value || '').replace(/\D/g, ''));
+                el.addEventListener('input', function () {
+                    var pos = el.selectionStart || 0;
+                    var before = el.value.slice(0, pos).replace(/\D/g, '').length;
+                    var digits = el.value.replace(/\D/g, '');
+                    var formatted = formatMoneyValue(digits);
+                    el.value = formatted;
+                    var seen = 0, newPos = formatted.length;
+                    if (before === 0) {
+                        newPos = 0;
+                    } else {
+                        for (var i = 0; i < formatted.length; i++) {
+                            if (/\d/.test(formatted[i])) {
+                                seen++;
+                                if (seen === before) { newPos = i + 1; break; }
+                            }
+                        }
+                    }
+                    try { el.setSelectionRange(newPos, newPos); } catch (e) {}
+                });
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function () { bindMoneyInputs(document); });
+
+        // ===== Ro'yxatga olish sanasi: start_day <-> regDay sinxronizatsiya =====
+        document.addEventListener('input', function (e) {
+            if (!e.target || !e.target.matches) return;
+            if (e.target.id === 'regDay') {
+                var s = document.getElementById('startDay');
+                if (s) s.value = e.target.value;
+            } else if (e.target.id === 'startDay') {
+                var r = document.getElementById('regDay');
+                if (r) r.value = e.target.value;
+            }
+        });
+
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.matches && e.target.matches('.month-pill input')) {
+                var pill = e.target.closest('.month-pill');
+                if (pill) pill.classList.toggle('active', e.target.checked);
+                var frm = e.target.closest('form');
+                if (frm) {
+                    syncMonthPills(frm);
+                    updateRemWeekday(frm);
+                }
+            }
+        });
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.matches && e.target.matches('.rem-day, .rem-year')) {
+                var frm = e.target.closest('form');
+                if (frm) updateRemWeekday(frm);
+            }
+        });
+        document.addEventListener('submit', function (e) {
+            var frm = e.target;
+            if (frm && frm.querySelector && frm.querySelector('input.rem-at')) {
+                if (!composeRemAt(frm)) e.preventDefault();
+            }
+        });
+
+        // ===== Eslatma sana-vaqti: oy pill + kun/yil/soat/daqiqa =====
+        var REM_WEEKDAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+        function remParts(form) {
+            var q = function (sel) { return form.querySelector(sel); };
+            var m = form.querySelector('input[type="radio"][name$="_rem_month"]:checked');
+            return {month: m ? parseInt(m.value) : null, day: q('.rem-day'),
+                    year: q('.rem-year'), hour: q('.rem-hour'), min: q('.rem-min'),
+                    out: q('input.rem-at'), wd: q('.rem-weekday'),
+                    err: q('.rem-error')};
+        }
+        function remMaxDay(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+        function updateRemWeekday(form) {
+            var p = remParts(form);
+            if (!p.wd) return;
+            var month = p.month;
+            var day = p.day ? parseInt(p.day.value) : NaN;
+            var year = p.year ? parseInt(p.year.value) : NaN;
+            if (!month || isNaN(day) || isNaN(year)) { p.wd.textContent = ''; return; }
+            day = Math.max(1, Math.min(day, remMaxDay(year, month)));
+            var dt = new Date(year, month - 1, day);
+            p.wd.textContent = '• ' + REM_WEEKDAYS[dt.getDay()];
+        }
+        function syncMonthPills(container) {
+            var root = typeof container === 'string' ? document.getElementById(container) : container;
+            if (!root || !root.querySelectorAll) return;
+            root.querySelectorAll('.month-pill').forEach(function (pill) {
+                var cb = pill.querySelector('input');
+                pill.classList.toggle('active', !!(cb && cb.checked));
+            });
+        }
+        function composeRemAt(form) {
+            var p = remParts(form);
+            if (p.err) p.err.style.display = 'none';
+            if (!p.month) {
+                if (p.err) p.err.style.display = 'block';
+                return false;
+            }
+            var year = p.year ? parseInt(p.year.value) : NaN;
+            var day = p.day ? parseInt(p.day.value) : NaN;
+            var hour = p.hour ? parseInt(p.hour.value) : 0;
+            var min = p.min ? parseInt(p.min.value) : 0;
+            if (isNaN(year)) year = new Date().getFullYear();
+            year = Math.max(2000, Math.min(year, 2100));
+            if (isNaN(day)) day = 1;
+            day = Math.max(1, Math.min(day, remMaxDay(year, p.month)));
+            if (isNaN(hour)) hour = 0;
+            hour = Math.max(0, Math.min(hour, 23));
+            if (isNaN(min)) min = 0;
+            min = Math.max(0, Math.min(min, 59));
+            if (p.day) p.day.value = day;
+            if (p.year) p.year.value = year;
+            if (p.hour) p.hour.value = hour;
+            if (p.min) p.min.value = min;
+            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+            p.out.value = year + '-' + pad(p.month) + '-' + pad(day) + 'T' + pad(hour) + ':' + pad(min);
+            return true;
+        }
+
+        // ===== To'langan foiz (avtomatik) =====
+        function calcEditPercent() {
+            var totalEl = document.getElementById('edit_total');
+            var paidEl = document.getElementById('edit_paid');
+            if (!totalEl || !paidEl) return;
+            var total = parseFloat((totalEl.value || '0').replace(/\s/g, '')) || 0;
+            var paid = parseFloat((paidEl.value || '0').replace(/\s/g, '')) || 0;
+            var pct = (total > 0 && paid > 0) ? (Math.round(paid * 1000 / total) / 10) : 0;
+            document.getElementById('edit_percent').textContent = pct + '%';
+        }
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.matches && (e.target.id === 'edit_total' || e.target.id === 'edit_paid')) {
+                calcEditPercent();
+            }
+        });
+
+        // ===== O'quvchi: Tahrirlash (hamma sahifada ishlaydi) =====
+        async function editStudent(id) {
+            const r = await fetch('/api/student/' + id);
+            const s = await r.json();
+            document.getElementById('editForm').action = '/students/' + id + '/update';
+            document.getElementById('edit_name').value = s.full_name;
+            document.getElementById('edit_phone').value = s.phone;
+            document.getElementById('edit_grade').value = s.grade || '';
+            document.getElementById('edit_course_id').value = s.course_id || '';
+            document.getElementById('edit_total').value = s.total_price || 0;
+            document.getElementById('edit_total').dispatchEvent(new Event('input'));
+            document.getElementById('edit_paid').value = s.paid_amount || 0;
+            document.getElementById('edit_paid').dispatchEvent(new Event('input'));
+            calcEditPercent();
+            document.getElementById('edit_note').value = s.note || '';
+            var cdt = new Date(s.created_at);
+            document.getElementById('edit_day').value = cdt.getDate();
+            document.getElementById('edit_created_hint').textContent = 'Hozirgi sana: ' + s.created_display;
+            try {
+                const gr = await fetch('/api/groups');
+                const groups = await gr.json();
+                const box = document.getElementById('editGroups');
+                box.innerHTML = '';
+                const mine = s.group_ids || [];
+                if (!groups.length) {
+                    box.innerHTML = '<span class="hint">Avval Guruhlar bo\'limida guruh yarating.</span>';
+                }
+                groups.forEach(function (g) {
+                    var lab = document.createElement('label');
+                    lab.className = 'month-pill' + (mine.indexOf(g.id) !== -1 ? ' active' : '');
+                    lab.style.padding = '10px 18px';
+                    var cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.name = 'group_ids';
+                    cb.value = g.id;
+                    cb.checked = mine.indexOf(g.id) !== -1;
+                    lab.appendChild(cb);
+                    lab.appendChild(document.createTextNode(g.name));
+                    box.appendChild(lab);
+                });
+            } catch (e) {}
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+    </script>
+
+    <!-- O'quvchi ma'lumotlari oynasi (global) -->
+    <div class="modal fade" id="detailModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="detailTitle">O'quvchi ma'lumotlari</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body" id="detailBody"></div>
+        <div class="modal-footer" id="detailFooter"></div>
+    </div></div></div>
+
+    <!-- Tahrirlash modali (global) -->
+    <div class="modal fade" id="editModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+        <form method="post" id="editForm">
+            <div class="modal-header"><h5 class="modal-title">Tahrirlash</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label">F.I.Sh *</label><input type="text" name="full_name" id="edit_name" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Telefon *</label><input type="text" name="phone" id="edit_phone" class="form-control" required></div>
+                <div class="mb-3"><label class="form-label">Sinf</label><select name="grade" id="edit_grade" class="form-select"><option value="">Tanlanmagan</option><option value="7-sinf">7-sinf</option><option value="8-sinf">8-sinf</option><option value="9-sinf">9-sinf</option><option value="10-sinf">10-sinf</option><option value="11-sinf">11-sinf</option></select></div>
+                <input type="hidden" name="course_id" id="edit_course_id" value="">
+                <div class="mb-3"><label class="form-label">Kurs</label><div class="form-control" style="font-weight:700;letter-spacing:1px;color:var(--text)">KIMYO</div></div>
+                <div class="mb-3"><label class="form-label">Umumiy kurs narxi (so'm)</label><input type="text" inputmode="numeric" name="total_price" id="edit_total" class="form-control money-input" placeholder="Masalan: 500 000"></div>
+                <div class="mb-3"><label class="form-label">To'langan summa (so'm)</label><input type="text" inputmode="numeric" name="paid_amount" id="edit_paid" class="form-control money-input" placeholder="Masalan: 150 000"></div>
+                <div class="mb-3"><label class="form-label">To'langan foiz (avtomatik)</label><div class="form-control" id="edit_percent" style="font-weight:800">0%</div></div>
+                <div class="mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-label mb-0">Kelgan kuni:</label>
+                        <input type="number" name="start_day" id="edit_day" class="form-control" min="1" max="31" style="max-width:90px">
+                        <small class="hint" id="edit_created_hint"></small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Guruhlar</label>
+                    <div class="d-flex flex-wrap gap-2" id="editGroups"></div>
+                </div>
+                <div class="mb-3"><label class="form-label">Izoh</label><textarea name="note" id="edit_note" class="form-control" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Bekor qilish</button><button type="submit" class="btn btn-primary-custom">💾 Saqlash</button></div>
+        </form>
+    </div></div></div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

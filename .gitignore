@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# PyInstaller
+build/
+dist/
+dist-win8/
+dist-universal/
+*.spec.bak
+
+# Binaries & runtime (release assetlarga chiqadi)
+*.exe
+*.apk
+*.db
+*.db-journal
+*.log
+mijozlar_ucun/
+
+# Android / Gradle
+android_versiya/**/build/
+android_versiya/**/.gradle/
+android_versiya/**/local.properties
+*.apk.bak
+
+# IDE / OS
+.idea/
+.vscode/
+Thumbs.db
+
+# App runtime data
+.write_probe

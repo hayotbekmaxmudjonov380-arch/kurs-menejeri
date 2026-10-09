@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Davomat — Kurs Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title">Davomat</div>
+        <div class="page-sub">Hafta: {{ week_title }}</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addAttStudentModal">+ Yangi o'quvchi</button>
+        <a href="{{ url_for('attendance_page', week=week_offset-1) }}" class="btn btn-ghost">‹ Oldingi</a>
+        <a href="{{ url_for('attendance_page', week=0) }}" class="btn btn-ghost">Bugun</a>
+        <a href="{{ url_for('attendance_page', week=week_offset+1) }}" class="btn btn-ghost">Keyingi ›</a>
+    </div>
+</div>
+
+<div class="card-dark p-0">
+    <div class="table-responsive">
+        <table class="table table-dark-custom" style="min-width:900px">
+            <thead>
+                <tr>
+                    <th style="min-width:200px">F.I.Sh</th>
+                    {% for d in date_infos %}
+                    <th class="text-center" {% if d.is_today %}style="color:var(--primary)"{% endif %}>{{ d.wd }}<br><small>{{ d.day }}</small></th>
+                    {% endfor %}
+                    <th class="text-center">Davomat %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for st in students %}
+                {% set parts = st.full_name.split() %}
+                {% set initials = ((parts[0][0] + parts[1][0]) if parts|length > 1 else parts[0][:2]) | upper %}
+                <tr>
+                    <td><span class="name-cell"><span class="avatar-sm">{{ initials }}</span>{{ st.full_name }}</span></td>
+                    {% for d in date_infos %}
+                    {% set v = matrix[st.id][d.iso] %}
+                    <td class="text-center">
+                        <button class="att-cell {% if v is true %}st-1{% elif v is false %}st-0{% else %}st-none{% endif %}"
+                            data-sid="{{ st.id }}" data-date="{{ d.iso }}"
+                            data-state="{% if v is true %}1{% elif v is false %}0{% else %}none{% endif %}"
+                            onclick="cycleAtt(this)" title="Bosish: — → ✓ → ✗">
+                            {% if v is true %}✓{% elif v is false %}✗{% else %}—{% endif %}
+                        </button>
+                    </td>
+                    {% endfor %}
+                    <td class="text-center" id="pct-{{ st.id }}" style="font-weight:800">{{ stats[st.id].pct }}%</td>
+                </tr>
+                {% endfor %}
+                {% if not students %}<tr><td colspan="9" class="text-center py-4" style="color:var(--text-faint)">O'quvchilar yo'q</td></tr>{% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Yangi o'quvchi modali (faqat F.I.Sh) -->
+<div class="modal fade" id="addAttStudentModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" action="{{ url_for('student_quick_create') }}">
+        <input type="hidden" name="next" value="{{ url_for('attendance_page', week=week_offset) }}">
+        <div class="modal-header"><h5 class="modal-title">Yangi o'quvchi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">F.I.Sh *</label><input type="text" name="full_name" class="form-control" required placeholder="Masalan: Abdullayev Azizbek"></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Bekor qilish</button><button type="submit" class="btn btn-primary-custom">💾 Saqlash</button></div>
+    </form>
+</div></div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function cycleAtt(btn) {
+    const order = {'none': 1, '1': 0, '0': null};
+    const cur = btn.getAttribute('data-state');
+    const next = order[cur];
+    const payload = {student_id: parseInt(btn.getAttribute('data-sid')), date: btn.getAttribute('data-date'), present: next};
+    try {
+        const r = await fetch('/api/attendance/set', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const d = await r.json();
+        if (d.error) return;
+        btn.setAttribute('data-state', d.state);
+        btn.className = 'att-cell ' + (d.state === '1' ? 'st-1' : d.state === '0' ? 'st-0' : 'st-none');
+        btn.textContent = d.state === '1' ? '✓' : d.state === '0' ? '✗' : '—';
+        const pct = document.getElementById('pct-' + payload.student_id);
+        if (pct) pct.textContent = d.pct + '%';
+    } catch (e) {}
+}
+</script>
+<style>
+.att-cell {
+    width: 48px; height: 48px; border-radius: 14px; border: 1px solid var(--border);
+    background: var(--panel-alt); color: var(--text-faint);
+    font-size: 20px; font-weight: 800; cursor: pointer; transition: all .12s;
+}
+.att-cell:hover { border-color: var(--primary); transform: scale(1.08); }
+.att-cell.st-1 { background: #189a52; border-color: #189a52; color: #fff; }
+.att-cell.st-0 { background: #e0324b; border-color: #e0324b; color: #fff; }
+</style>
+{% endblock %}

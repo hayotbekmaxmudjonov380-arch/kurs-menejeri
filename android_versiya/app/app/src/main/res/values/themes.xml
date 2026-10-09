@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.KursManager" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSurface">@color/panel</item>
+        <item name="colorOnSurface">@color/text</item>
+        <item name="android:colorBackground">@color/bg</item>
+        <item name="android:textColor">@color/text</item>
+        <item name="android:textColorSecondary">@color/text_dim</item>
+        <item name="android:statusBarColor">@color/bg_dark</item>
+        <item name="android:navigationBarColor">@color/bg_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

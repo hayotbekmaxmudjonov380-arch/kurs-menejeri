@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Ro'yxatga olish — Kurs Manager{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <div class="page-title">Ro'yxatga olish</div>
+        <div class="page-sub">Yangi o'quvchilarni ro'yxatga oling va boshqaring</div>
+    </div>
+    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addModal">+ Yangi o'quvchi</button>
+</div>
+
+<!-- Filtr panel -->
+<form method="get" class="filter-bar">
+    <div class="ref-search">
+        <i class="bi bi-search"></i>
+        <input type="text" name="search" autocomplete="off" placeholder="F.I.Sh yoki telefon raqamini qidiring..." value="{{ search }}">
+    </div>
+    <select name="status" class="filter-select">
+        <option value="">Barcha holatlar</option>
+        <option value="paid" {% if current_status == 'paid' %}selected{% endif %}>To'lov qilganlar</option>
+        <option value="unpaid" {% if current_status == 'unpaid' %}selected{% endif %}>To'lov qilmaganlar</option>
+    </select>
+    <select name="month" class="filter-select" title="Shu oyda to'lov qilmaganlar">
+        <option value="">Barcha oylar</option>
+        {% for mi, mname in [('8','Avgust'),('9','Sentabr'),('10','Oktabr'),('11','Noyabr'),('12','Dekabr'),('1','Yanvar'),('2','Fevral'),('3','Mart'),('4','Aprel'),('5','May'),('6','Iyun'),('7','Iyul')] %}
+        <option value="{{ mi }}" {% if current_month == mi|int %}selected{% endif %}>{{ mname }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn-filter"><i class="bi bi-funnel"></i> Filtr</button>
+</form>
+
+<!-- Jadval -->
+<div class="card-dark p-0">
+    <div class="table-responsive">
+        <table class="table table-dark-custom">
+            <thead>
+                <tr><th>№</th><th>F.I.Sh</th><th>Telefon</th><th>Kurs</th><th>To'lov holati</th><th>Qo'shilgan sana</th><th>O'quvchi ma'lumotlari</th></tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                {% set parts = s.full_name.split() %}
+                {% set initials = ((parts[0][0] + parts[1][0]) if parts|length > 1 else parts[0][:2]) | upper %}
+                <tr>
+                    <td class="text-dim">{{ loop.index + (pagination.page - 1) * pagination.per_page }}</td>
+                    <td><span class="name-cell"><span class="avatar-sm">{{ initials }}</span>{{ s.full_name }}</span></td>
+                    <td>{{ s.phone }}</td>
+                    <td>{{ s.course_name }}</td>
+                    <td>
+                        {% if s.payment_status == 'paid' %}<span class="sbadge sbadge-green"><i class="bi bi-person-fill"></i> To'lov qilingan</span>
+                        {% else %}<span class="sbadge sbadge-red"><i class="bi bi-person-fill"></i> To'lov qilinmagan</span>{% endif %}
+                    </td>
+                    <td>{{ s.created_display }}</td>
+                    <td>
+                        <button class="btn btn-sm-action" onclick="showStudentDetail({{ s.id }})">O'quvchi ma'lumotlari</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if not students %}<tr><td colspan="7" class="text-center py-4" style="color:var(--text-faint)">Ma'lumot topilmadi</td></tr>{% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Footer + pagination -->
+<div class="table-footer">
+    <span>Jami: {{ pagination.total }} ta o'quvchi</span>
+    <div class="pagination-ref">
+        {% if pagination.page > 1 %}
+        <a href="{{ url_for('students_page', search=search, status=current_status, month=current_month or '', page=pagination.page-1) }}">‹</a>
+        {% else %}<span class="disabled">‹</span>{% endif %}
+        {% for p in range(1, pagination.pages + 1) %}
+            {% if p == pagination.page %}<span class="cur">{{ p }}</span>
+            {% else %}<a href="{{ url_for('students_page', search=search, status=current_status, month=current_month or '', page=p) }}">{{ p }}</a>{% endif %}
+        {% endfor %}
+        {% if pagination.page < pagination.pages %}
+        <a href="{{ url_for('students_page', search=search, status=current_status, month=current_month or '', page=pagination.page+1) }}">›</a>
+        {% else %}<span class="disabled">›</span>{% endif %}
+    </div>
+</div>
+
+<!-- Yangi o'quvchi modali -->
+<div class="modal fade" id="addModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <form method="post" action="{{ url_for('student_create') }}">
+        <div class="modal-header"><h5 class="modal-title">Yangi o'quvchi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="mb-3"><label class="form-label">F.I.Sh *</label><input type="text" name="full_name" class="form-control" required placeholder="Masalan: Abdullayev Azizbek"></div>
+            <div class="mb-3"><label class="form-label">Telefon *</label><input type="text" name="phone" class="form-control" required placeholder="+998 90 123 45 67"></div>
+            <div class="mb-3"><label class="form-label">Sinf</label><select name="grade" class="form-select"><option value="">Tanlanmagan</option><option value="7-sinf">7-sinf</option><option value="8-sinf">8-sinf</option><option value="9-sinf">9-sinf</option><option value="10-sinf">10-sinf</option><option value="11-sinf">11-sinf</option></select></div>
+            {% if courses|length == 1 %}
+            <input type="hidden" name="course_id" value="{{ courses[0].id }}">
+            <div class="mb-3"><label class="form-label">Kurs</label><div class="form-control" style="font-weight:700;letter-spacing:1px;color:var(--text)">KIMYO</div></div>
+            {% else %}
+            <div class="mb-3"><label class="form-label">Kurs *</label><select name="course_id" class="form-select" required><option value="">Kursni tanlang</option>{% for c in courses %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></div>
+            {% endif %}
+            <div class="mb-3"><label class="form-label">Umumiy kurs narxi (so'm)</label>
+                <input type="text" inputmode="numeric" name="total_price" id="addTotal" class="form-control money-input" placeholder="Masalan: 500 000" value="{{ courses[0].price|int if courses else 0 }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">To'langan summa (so'm)</label>
+                <input type="text" inputmode="numeric" name="paid_amount" id="addPaid" class="form-control money-input" placeholder="Masalan: 150 000" value="0">
+            </div>
+            <div class="mb-3"><label class="form-label">To'langan foiz (avtomatik)</label><div class="form-control" id="addPercent" style="font-weight:800">0%</div></div>
+            <div class="mb-3">
+                <label class="form-label">Kelgan sana</label>
+                <div class="d-flex gap-2">
+                    <input type="number" name="reg_day" id="regDay" class="form-control" min="1" max="31" value="{{ now().strftime('%d') }}" style="max-width:90px" title="Kun">
+                    <select name="reg_month" id="regMonth" class="form-select" style="max-width:150px" title="Oy">
+                        {% for mi, mname in [('8','Avgust'),('9','Sentabr'),('10','Oktabr'),('11','Noyabr'),('12','Dekabr'),('1','Yanvar'),('2','Fevral'),('3','Mart'),('4','Aprel'),('5','May'),('6','Iyun'),('7','Iyul')] %}
+                        <option value="{{ mi }}" {% if now().month == mi|int %}selected{% endif %}>{{ mname }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" name="reg_year" id="regYear" class="form-control" min="2000" max="2100" value="{{ now().strftime('%Y') }}" style="max-width:110px" title="Yil">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Guruhlar</label>
+                {% if groups %}
+                <div class="d-flex flex-wrap gap-2" id="addGroups">
+                    {% for g in groups %}
+                    <label class="month-pill" style="padding:10px 18px"><input type="checkbox" name="group_ids" value="{{ g.id }}">{{ g.name }}</label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="hint">Avval Guruhlar bo'limida guruh yarating.</div>
+                {% endif %}
+            </div>
+            <div class="mb-3"><label class="form-label">Izoh</label><textarea name="note" class="form-control" rows="2" placeholder="Ixtiyoriy"></textarea></div>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Bekor qilish</button><button type="submit" class="btn btn-primary-custom">💾 Saqlash</button></div>
+    </form>
+</div></div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function calcAddPercent() {
+    var total = parseFloat((document.getElementById('addTotal').value || '0').replace(/\s/g, '')) || 0;
+    var paid = parseFloat((document.getElementById('addPaid').value || '0').replace(/\s/g, '')) || 0;
+    var pct = (total > 0 && paid > 0) ? (Math.round(paid * 1000 / total) / 10) : 0;
+    document.getElementById('addPercent').textContent = pct + '%';
+}
+document.getElementById('addTotal').addEventListener('input', calcAddPercent);
+document.getElementById('addPaid').addEventListener('input', calcAddPercent);
+</script>
+{% endblock %}
