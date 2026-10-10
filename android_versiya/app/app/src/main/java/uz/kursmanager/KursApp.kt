@@ -1,6 +1,10 @@
 package uz.kursmanager
 
 import android.app.Application
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import uz.kursmanager.data.AppDatabase
 import uz.kursmanager.data.Repo
 import uz.kursmanager.sync.SyncManager
@@ -13,12 +17,14 @@ class KursApp : Application() {
         private set
     lateinit var repo: Repo
         private set
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
         db = AppDatabase.get(this)
         sync = SyncManager(this)
         repo = Repo(db, sync)
+        appScope.launch { repo.mergeDuplicateCourses() }
         // Agar avval ulangan bo'lsa — fon avtomatik sinxronlashishni yoqish
         if (sync.isPaired) {
             SyncWorker.schedulePeriodic(this)

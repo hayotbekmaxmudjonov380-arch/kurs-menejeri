@@ -13,7 +13,28 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
     private val gson = Gson()
 
     // ---------- Courses ----------
-    suspend fun courses(): List<Course> = db.courses().all()
+    suspend fun courses(): List<Course> = db.courses().all().distinctBy { it.name.trim().lowercase() }
+
+    /** Bir xil nomli kurs dublikatlarini birlashtiradi (eski qurilmalardan qolgan holda). */
+    suspend fun mergeDuplicateCourses() {
+        val all = db.courses().all()
+        if (all.size < 2) return
+        val students = db.students().all()
+        val byName = all.groupBy { it.name.trim().lowercase() }
+        for ((_, dups) in byName) {
+            if (dups.size < 2) continue
+            val keep = dups.minByOrNull { it.id } ?: dups.first()
+            for (c in dups) {
+                if (c.uid == keep.uid) continue
+                for (st in students.filter { it.courseUid == c.uid }) {
+                    val upd = st.copy(courseId = keep.id, courseUid = keep.uid, updated_at = nowIso())
+                    db.students().upsert(upd)
+                    enqueueStudent(upd)
+                }
+                sync.markDeleted("courses", c.uid)
+            }
+        }
+    }
 
     // ---------- Students ----------
     suspend fun students(): List<Student> = db.students().all()
