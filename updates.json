@@ -12,10 +12,10 @@
     "notes": "- Dastlabki masofaviy yangilanish"
   },
   "android": {
-    "version": "1.3.7",
-    "versionCode": 138,
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.7/KursManager-v1.3.7.apk",
-    "sha256": "3de9993ad83b9e83c42b39d6b3517c4379cad8d03d907a5a60156638c631f688",
-    "notes": "Yangiliklar:\n- Kurslar dublikati tuzatildi (bitta Kimyo fani)\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
+    "version": "1.3.8",
+    "versionCode": 139,
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.8/KursManager-v1.3.8.apk",
+    "sha256": "2ff60a12f18213bfaac9ddea4381cd459a7ea152956dfdeea2fd601c388c2e32",
+    "notes": "Yangiliklar:\n- Ma'lumotlar yangilanishda ham saqlanadi (xavfsiz migratsiya)\n- Kurslar dublikati tuzatildi\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
   }
 }
