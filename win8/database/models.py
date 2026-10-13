@@ -23,6 +23,17 @@ from sqlalchemy import (
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
+def new_uid() -> str:
+    """Yozuvga beriladigan global identifikator (sinxron uchun).
+
+    `id` ikki qurilmada bir xil bo'lmasligi mumkin, `uid` esa
+    dunyo bo'ylab bir xil — shu bilan merge xavfsiz ishlaydi.
+    """
+    import uuid
+
+    return uuid.uuid4().hex
+
+
 class Base(DeclarativeBase):
     pass
 
@@ -45,6 +56,8 @@ class Course(Base):
     price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     students: Mapped[list["Student"]] = relationship(
         back_populates="course", passive_deletes=True
@@ -69,6 +82,8 @@ class Student(Base):
     grade: Mapped[str] = mapped_column(String(20), nullable=False, default="")
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     course: Mapped[Optional["Course"]] = relationship(back_populates="students")
     payments: Mapped[list["Payment"]] = relationship(
@@ -89,6 +104,8 @@ class Payment(Base):
     status: Mapped[str] = mapped_column(String(20), nullable=False, default=PaymentStatus.PAID)
     payment_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     student: Mapped["Student"] = relationship(back_populates="payments")
 
@@ -109,6 +126,8 @@ class TestResult(Base):
     result_date: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     student: Mapped["Student"] = relationship()
 
@@ -125,6 +144,8 @@ class Reminder(Base):
     is_done: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     notified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
 
 class Group(Base):
@@ -135,6 +156,8 @@ class Group(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     members: Mapped[list["GroupMember"]] = relationship(
         back_populates="group",
@@ -157,6 +180,8 @@ class GroupMember(Base):
         ForeignKey("students.id", ondelete="CASCADE"), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     group: Mapped["Group"] = relationship(back_populates="members")
     student: Mapped["Student"] = relationship()
@@ -189,6 +214,8 @@ class MonthlyPayment(Base):
     paid: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     amount: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     student: Mapped["Student"] = relationship()
 
@@ -207,6 +234,8 @@ class Attendance(Base):
     present: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     note: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, default=datetime.now)
+    uid: Mapped[str] = mapped_column(String(32), nullable=False, default=new_uid, unique=True, index=True)
 
     student: Mapped["Student"] = relationship()
 
@@ -216,3 +245,34 @@ class Setting(Base):
 
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
     value: Mapped[str] = mapped_column(Text, nullable=False, default="")
+
+
+class TrustedDevice(Base):
+    """Juftlangan telefonlar (bir martalik koddan keyin eslab qolinadi)."""
+
+    __tablename__ = "trusted_devices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    device_id: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    device_name: Mapped[str] = mapped_column(String(150), nullable=False, default="")
+    token: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    paired_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+
+
+class Tombstone(Base):
+    """O'chirilgan yozuvlar qaydi (sinxron paytida qayta 'tirilmasligi' uchun)."""
+
+    __tablename__ = "tombstones"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    table_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    row_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    # Sinxron kaliti — boshqa qurilmadagi mahalliy id bilan emas, shu bilan
+    # o'chirish to'g'ri yozuvga tedi (har doim ham to'g'ri kelmaydi).
+    row_uid: Mapped[str] = mapped_column(String(32), nullable=False, default="")
+    deleted_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+
+    __table_args__ = (
+        UniqueConstraint("table_name", "row_id"),
+        UniqueConstraint("table_name", "row_uid"),
+    )

@@ -1,21 +1,21 @@
 {
   "win10": {
-    "version": "1.3.6",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.6/KursManager.exe",
-    "sha256": "9b05769017c6453c063a8f580c561a387377d30abc9d2fa698cf6efac0967b43",
-    "notes": "Yangiliklar:\n- QR kod orqali telefon ulash\n- To'lov holati faqat To'lovlar bo'limidan boshqariladi\n- Avtomatik sinxronlashish"
+    "version": "1.3.8",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.0/KursManager.exe",
+    "sha256": "88fda986ce87a2de2d8af3b3e533e51fbf0000fd953b39dea7a40d0b6eb398a3",
+    "notes": "Yangiliklar:\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- QR kod orqali telefon ulash\n- To'lov holati faqat To'lovlar bo'limidan boshqariladi\n- Avtomatik sinxronlashish\n- Ma'lumotlar yangilanishda saqlanadi"
   },
   "win8": {
-    "version": "1.3.0",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/kursmenejeri/KursManager.exe",
-    "sha256": "d70928514a6b9390bdd952f13403f2eb036be0d949333ea0fedf91ef4f55423d",
-    "notes": "- Dastlabki masofaviy yangilanish"
+    "version": "1.3.8",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.0/KursManager.exe",
+    "sha256": "88fda986ce87a2de2d8af3b3e533e51fbf0000fd953b39dea7a40d0b6eb398a3",
+    "notes": "Yangiliklar:\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish"
   },
   "android": {
-    "version": "1.3.8",
-    "versionCode": 139,
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.3.8/KursManager-v1.3.8.apk",
-    "sha256": "2ff60a12f18213bfaac9ddea4381cd459a7ea152956dfdeea2fd601c388c2e32",
-    "notes": "Yangiliklar:\n- Ma'lumotlar yangilanishda ham saqlanadi (xavfsiz migratsiya)\n- Kurslar dublikati tuzatildi\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
+    "version": "1.3.9",
+    "versionCode": 140,
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.0/KursManager-v1.3.9.apk",
+    "sha256": "b2204506bed2ad52e4c00a1bd0510b0158af2f065cfdb2179460fddfb19445be",
+    "notes": "Yangiliklar:\n- Android 14 va undan yuqori versiyalarda ishlaydi\n- Ma'lumotlar yangilanishda ham saqlanadi\n- Kurslar dublikati tuzatildi\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
   }
 }
