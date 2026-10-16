@@ -8,7 +8,6 @@ from PySide2.QtCore import Qt, Signal
 from PySide2.QtWidgets import (
     QHBoxLayout,
     QLabel,
-    QMessageBox,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -16,11 +15,8 @@ from PySide2.QtWidgets import (
 
 from services import student_service
 from ui import dialogs
-from ui.theme import STATUS_META
 from ui.widgets import (
     PageHeader,
-    StatusBadge,
-    make_button,
     make_item,
     make_search_input,
     setup_table,
@@ -32,8 +28,8 @@ logger = logging.getLogger(__name__)
 class DashboardPage(QWidget):
     data_changed = Signal()
 
-    COLUMNS = ["№", "F.I.Sh", "Telefon", "Kurs", "To'lov holati", "Qo'shilgan sana", "Amallar"]
-    WIDTHS = [50, 240, 150, 160, 170, 110, 120]
+    COLUMNS = ["№", "F.I.Sh", "Telefon", "Kurs", "Qo'shilgan sana", "Amallar"]
+    WIDTHS = [50, 250, 160, 170, 130, 120]
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -47,6 +43,22 @@ class DashboardPage(QWidget):
         layout.setSpacing(14)
 
         layout.addWidget(PageHeader("Bosh sahifa", "Bugungi statistikangizni kuzating"))
+
+        # ---- Yangilash tugmasi (telefondan kelgan o'zgarishlarni ko'rish) ----
+        refresh_row = QHBoxLayout()
+        refresh_row.setSpacing(0)
+        refresh_row.setContentsMargins(0, 0, 0, 0)
+        refresh_row.addStretch(1)
+        self.sync_btn = QToolButton()
+        self.sync_btn.setObjectName("actionButton")
+        self.sync_btn.setText("🔄 Yangilash")
+        self.sync_btn.setCursor(Qt.PointingHandCursor)
+        self.sync_btn.setToolTip(
+            "Ma'lumotlarni yangilash (telefondan kelgan o'zgarishlar ko'rinadi)"
+        )
+        self.sync_btn.clicked.connect(self._on_refresh)
+        refresh_row.addWidget(self.sync_btn)
+        layout.addLayout(refresh_row)
 
         # ---- Qidiruv satri ----
         toolbar = QHBoxLayout()
@@ -64,16 +76,17 @@ class DashboardPage(QWidget):
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table, 1)
 
-        footer = QLabel("🟢 To'lov qilingan  •  🟡 Kutilmoqda  •  🔴 To'lov qilinmagan")
-        footer.setObjectName("hintText")
-        layout.addWidget(footer)
-
         self.refresh()
 
     def refresh(self) -> None:
         search = self.search.text().strip()
         self.students = student_service.list_students(search=search)
         self._populate_table()
+
+    def _on_refresh(self) -> None:
+        """Yangilash tugmasi: barcha sahifalarni qayta yuklaydi."""
+        self.refresh()
+        self.data_changed.emit()
 
     def _populate_table(self) -> None:
         table = self.table
@@ -86,9 +99,7 @@ class DashboardPage(QWidget):
             table.setItem(row, 1, make_item(student["full_name"]))
             table.setItem(row, 2, make_item(student["phone"]))
             table.setItem(row, 3, make_item(student["course_name"]))
-            badge = StatusBadge(student["payment_status"])
-            table.setCellWidget(row, 4, badge)
-            table.setItem(row, 5, make_item(student["created_display"]))
+            table.setItem(row, 4, make_item(student["created_display"]))
             self._attach_action_button(row, student)
         if not self.students:
             table.insertRow(0)
@@ -104,10 +115,10 @@ class DashboardPage(QWidget):
         btn.setText("Amallar ▾")
         btn.setCursor(Qt.PointingHandCursor)
         btn.clicked.connect(lambda _=False, b=btn, s=student: self._open_action_menu(b, s))
-        self.table.setCellWidget(row, 6, btn)
+        self.table.setCellWidget(row, 5, btn)
 
     def _open_action_menu(self, button: QToolButton, student: dict) -> None:
-        menu = dialogs.build_student_menu(button, student["payment_status"])
+        menu = dialogs.build_student_menu(button)
         action = menu.exec_(button.mapToGlobal(button.rect().bottomLeft()))
         if not action:
             return
@@ -118,8 +129,6 @@ class DashboardPage(QWidget):
             self._edit_student(student)
         elif payload == "delete":
             self._delete_student(student)
-        elif isinstance(payload, tuple) and payload[0] == "status":
-            self._change_status(student, payload[1])
 
     def _show_detail(self, student_id: int) -> None:
         dlg = dialogs.StudentDetailDialog(self, student_id, on_change=self._after_change)
@@ -140,15 +149,6 @@ class DashboardPage(QWidget):
             return
         try:
             student_service.delete_student(student["id"])
-            self._after_change()
-        except Exception as exc:  # noqa: BLE001
-            dialogs.error_from_exception(self, exc)
-
-    def _change_status(self, student: dict, new_status: str) -> None:
-        if new_status == student["payment_status"]:
-            return
-        try:
-            student_service.set_payment_status(student["id"], new_status)
             self._after_change()
         except Exception as exc:  # noqa: BLE001
             dialogs.error_from_exception(self, exc)

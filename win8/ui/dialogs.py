@@ -108,11 +108,9 @@ def build_status_menu(parent: QWidget, current: str | None = None) -> QMenu:
 
 
 def build_student_menu(parent: QWidget, current: str | None = None) -> QMenu:
-    """Jadvaldagi «Amallar» menyusi: batafsil/tahrirlash + statuslar + o'chirish.
+    """Jadvaldagi «Amallar» menyusi: batafsil/tahrirlash + o'chirish.
 
-    Qaytarilgan action.data() qiymatlari:
-      - "detail", "edit", "delete" — oddiy amallar
-      - ("status", key)            — to'lov holatini o'zgartirish
+    To'lov holati endi faqat «To'lovlar» bo'limidan boshqariladi.
     """
     menu = QMenu(parent)
     detail = QAction("🏷 Batafsil", menu)
@@ -121,14 +119,6 @@ def build_student_menu(parent: QWidget, current: str | None = None) -> QMenu:
     edit.setData("edit")
     menu.addAction(detail)
     menu.addAction(edit)
-    menu.addSeparator()
-    for key in ("paid", "unpaid"):
-        meta = STATUS_META[key]
-        action = QAction(f"{meta['emoji']}  {meta['label']}", menu)
-        action.setData(("status", key))
-        if key == current:
-            action.setEnabled(False)
-        menu.addAction(action)
     menu.addSeparator()
     delete = QAction("🗑 O'chirish", menu)
     delete.setData("delete")
@@ -176,7 +166,8 @@ class StudentDialog(QDialog):
         outer.setSpacing(10)
 
         body = QWidget()
-        body.setStyleSheet("background: transparent; border: none;")
+        body.setObjectName("body")
+        body.setStyleSheet("#body { background: transparent; border: none; }")
         layout = QVBoxLayout(body)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
@@ -220,8 +211,6 @@ class StudentDialog(QDialog):
             suffix = "" if c["active"] else " (nofaol)"
             self.course_combo.addItem(f"{c['name']}{suffix}", c["id"])
 
-        self.status_combo = _combo_with_statuses()
-
         self.grade_combo = QComboBox()
         self.grade_combo.addItem("Tanlanmagan", "")
         for grade_name in ("7-sinf", "8-sinf", "9-sinf", "10-sinf", "11-sinf"):
@@ -263,8 +252,6 @@ class StudentDialog(QDialog):
         form.addWidget(self.grade_combo)
         form.addWidget(self._caption("Kurs *"))
         form.addWidget(self.course_combo)
-        form.addWidget(self._caption("To'lov holati"))
-        form.addWidget(self.status_combo)
         form.addWidget(self.total_edit)
         form.addWidget(self.paid_edit)
         form.addWidget(self._caption("To'langan foiz (avtomatik)"))
@@ -368,9 +355,6 @@ class StudentDialog(QDialog):
         self.total_edit.setValue(student.get("total_price") or 0.0)
         self.paid_edit.setValue(student.get("paid_amount") or 0.0)
         self._update_percent()
-        s_idx = self.status_combo.findData(student["payment_status"])
-        if s_idx >= 0:
-            self.status_combo.setCurrentIndex(s_idx)
         if student.get("created_at"):
             self.date_edit.setDate(student["created_at"])
         for gid in student.get("group_ids", []) or []:
@@ -402,7 +386,6 @@ class StudentDialog(QDialog):
         full_name = self.name_edit.text().strip()
         phone = self.phone_edit.text().strip()
         course_id = self.course_combo.currentData()
-        payment_status = self.status_combo.currentData()
         grade = self.grade_combo.currentData() or ""
         note = self.note_edit.toPlainText().strip()
         total_price = self.total_edit.value()
@@ -420,8 +403,7 @@ class StudentDialog(QDialog):
         if err:
             warning(self, err)
             return None
-        if payment_status is None:
-            payment_status = "paid"
+        payment_status = "unpaid"
 
         created = self.date_edit.date()
         if created is None:
@@ -470,10 +452,8 @@ class StudentDetailDialog(QDialog):
         self.header_row = QHBoxLayout()
         self.name_label = QLabel()
         self.name_label.setObjectName("pageTitle")
-        self.badge = StatusBadge("paid")
         self.header_row.addWidget(self.name_label)
         self.header_row.addStretch(1)
-        self.header_row.addWidget(self.badge)
         self.root.addLayout(self.header_row)
 
         head = QLabel("Asosiy ma'lumotlar")
@@ -528,12 +508,9 @@ class StudentDetailDialog(QDialog):
         btn_row.addStretch(1)
         edit_btn = make_button("✏️ Tahrirlash", "ghost")
         edit_btn.clicked.connect(self._edit)
-        status_btn = make_button("🔄 To'lov holatini o'zgartirish", "warning")
-        status_btn.clicked.connect(self._change_status)
         delete_btn = make_button("🗑 O'chirish", "danger")
         delete_btn.clicked.connect(self._delete)
         btn_row.addWidget(edit_btn)
-        btn_row.addWidget(status_btn)
         btn_row.addWidget(delete_btn)
         self.root.addLayout(btn_row)
 
@@ -561,9 +538,6 @@ class StudentDetailDialog(QDialog):
             f"📅 {student.get('due_display', '—')} ({student.get('due_label', '')})"
         )
         self.note_label.setText(student["note"] or "Izoh yo'q")
-        self.badge.setParent(None)
-        self.badge = StatusBadge(student["payment_status"])
-        self.header_row.insertWidget(2, self.badge)
 
         self.pay_table.setRowCount(0)
         for p in payment_service.list_by_student(self.student_id):
@@ -584,25 +558,6 @@ class StudentDetailDialog(QDialog):
         if dlg.exec() == QDialog.Accepted:
             self._reload()
             self.on_change()
-
-    def _change_status(self) -> None:
-        student = student_service.get_student(self.student_id)
-        if not student:
-            return
-        menu = build_status_menu(self, student["payment_status"])
-        action = menu.exec_(self.mapToGlobal(self.pos()))
-        if not action:
-            return
-        new_status = action.data()
-        if not new_status or new_status == student["payment_status"]:
-            return
-        try:
-            student_service.set_payment_status(self.student_id, new_status)
-            info(self, f"Holat «{STATUS_META[new_status]['label']}» ga o'zgartirildi.")
-            self._reload()
-            self.on_change()
-        except Exception as exc:  # noqa: BLE001
-            error_from_exception(self, exc)
 
     def _delete(self) -> None:
         if not confirm(

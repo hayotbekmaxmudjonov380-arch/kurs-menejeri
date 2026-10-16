@@ -18,7 +18,6 @@ from services import course_service, monthly_payment_service, student_service
 from ui import dialogs
 from ui.widgets import (
     PageHeader,
-    StatusBadge,
     make_button,
     make_item,
     make_search_input,
@@ -31,8 +30,8 @@ logger = logging.getLogger(__name__)
 class StudentsPage(QWidget):
     data_changed = Signal()
 
-    COLUMNS = ["№", "F.I.Sh", "Telefon", "Kurs", "To'lov holati", "Qo'shilgan sana", "Amallar"]
-    WIDTHS = [50, 250, 160, 170, 180, 110, 120]
+    COLUMNS = ["№", "F.I.Sh", "Telefon", "Kurs", "Qo'shilgan sana", "Amallar"]
+    WIDTHS = [50, 280, 170, 180, 130, 120]
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -100,9 +99,7 @@ class StudentsPage(QWidget):
             table.setItem(row, 1, make_item(student["full_name"]))
             table.setItem(row, 2, make_item(student["phone"]))
             table.setItem(row, 3, make_item(student["course_name"]))
-            badge = StatusBadge(student["payment_status"])
-            table.setCellWidget(row, 4, badge)
-            table.setItem(row, 5, make_item(student["created_display"]))
+            table.setItem(row, 4, make_item(student["created_display"]))
             self._attach_action_button(row, student)
         if not self.students:
             table.insertRow(0)
@@ -118,10 +115,10 @@ class StudentsPage(QWidget):
         btn.setText("Amallar ▾")
         btn.setCursor(Qt.PointingHandCursor)
         btn.clicked.connect(lambda _=False, b=btn, s=student: self._open_action_menu(b, s))
-        self.table.setCellWidget(row, 6, btn)
+        self.table.setCellWidget(row, 5, btn)
 
     def _open_action_menu(self, button: QToolButton, student: dict) -> None:
-        menu = dialogs.build_student_menu(button, student["payment_status"])
+        menu = dialogs.build_student_menu(button)
         action = menu.exec_(button.mapToGlobal(button.rect().bottomLeft()))
         if not action:
             return
@@ -133,8 +130,6 @@ class StudentsPage(QWidget):
             self._edit_student(student)
         elif payload == "delete":
             self._delete_student(student)
-        elif isinstance(payload, tuple) and payload[0] == "status":
-            self._change_status(student, payload[1])
 
     def _add_student(self) -> None:
         if not course_service.all_courses():
@@ -162,15 +157,6 @@ class StudentsPage(QWidget):
             return
         try:
             student_service.delete_student(student["id"])
-            self._after_change()
-        except Exception as exc:  # noqa: BLE001
-            dialogs.error_from_exception(self, exc)
-
-    def _change_status(self, student: dict, new_status: str) -> None:
-        if new_status == student["payment_status"]:
-            return
-        try:
-            student_service.set_payment_status(student["id"], new_status)
             self._after_change()
         except Exception as exc:  # noqa: BLE001
             dialogs.error_from_exception(self, exc)

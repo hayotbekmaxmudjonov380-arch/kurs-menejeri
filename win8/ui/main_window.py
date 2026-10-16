@@ -75,6 +75,7 @@ class MainWindow(QMainWindow):
         self._connect_signals()
         self._setup_notifications()
         self._setup_auto_update()
+        self._start_sync_server()
 
         # Har bir sahifadagi o'zgarishlarni barcha sahifalarga tarqatish
         for page in self.pages.values():
@@ -141,13 +142,20 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(self.theme_btn)
         self._update_theme_btn()
 
-        self.update_btn = QPushButton("🔄  Yangilash")
-        self.update_btn.setObjectName("themeToggle")
+        self.update_btn = QPushButton("🔄  Yangilanishlar")
+        self.update_btn.setObjectName("updateBtn")
+        # Default holat: indikator o'chiq (yangilanish topilganda ko'k yonadi)
+        self.update_btn.setProperty("updateAvailable", False)
         self.update_btn.setCursor(Qt.PointingHandCursor)
         self.update_btn.clicked.connect(self._on_update_btn_clicked)
-        # Tugma faqat yangilanish topilganda ko'rinadi
-        self.update_btn.setVisible(False)
+        self.update_btn.setVisible(True)
         sidebar_layout.addWidget(self.update_btn)
+
+        self.phone_btn = QPushButton("📱  Telefon ulash")
+        self.phone_btn.setObjectName("themeToggle")
+        self.phone_btn.setCursor(Qt.PointingHandCursor)
+        self.phone_btn.clicked.connect(self._open_phone_dialog)
+        sidebar_layout.addWidget(self.phone_btn)
 
         sidebar_layout.addStretch(1)
 
@@ -309,15 +317,32 @@ class MainWindow(QMainWindow):
             logger.exception("Updater ishga tushmadi")
             self._update_checking = False
 
+    def _set_update_indicator(self, active: bool) -> None:
+        """Yangilanish indikatori: yangilanish bor bo'lsa tugma ko'k yonadi,
+        aks holda default (o'chiq) holatda turadi."""
+        try:
+            self.update_btn.setProperty("updateAvailable", active)
+            self.update_btn.setText(
+                "🔄  Yangilanishlar (Yangi!)" if active else "🔄  Yangilanishlar"
+            )
+            style = self.style()
+            if style is not None:
+                style.unpolish(self.update_btn)
+                style.polish(self.update_btn)
+            self.update_btn.update()
+        except RuntimeError:
+            pass
+
     def _on_update_checked(self, info) -> None:
         self._update_checking = False
         if not info:
+            self._update_info = None
+            self._set_update_indicator(False)
             return
+
         self._update_info = info
-        try:
-            self.update_btn.setVisible(True)
-        except RuntimeError:
-            pass
+        self._set_update_indicator(True)
+
         # Push-habar — faqat yangilanish bor paytda chiqadi
         try:
             from version import VERSION
@@ -325,17 +350,54 @@ class MainWindow(QMainWindow):
             self._notify(
                 "🔄 Yangilanish mavjud (v%s)" % info.get("version", ""),
                 "Yangi versiyani o'rnatish uchun\n"
-                "sidebar'dagi «Yangilash» tugmasini bosing.\n"
+                "sidebar'dagi «Yangilanishlar» tugmasini bosing.\n"
                 "Hozirgi versiya: v%s." % VERSION,
             )
         except Exception:  # noqa: BLE001
             logger.exception("Yangilanish push-xabari yuborilmadi")
 
+    def _start_sync_server(self) -> None:
+        from services import sync_server
+
+        self.sync_server = sync_server.SyncServer()
+        if not self.sync_server.start():
+            logger.warning("Sync server ishga tushmadi (port band?)")
+
+    def _open_phone_dialog(self) -> None:
+        from PySide2.QtWidgets import QMessageBox
+
+        from ui.phone_dialog import PhoneDialog
+
+        server = getattr(self, "sync_server", None)
+        if server is None or not server.running:
+            self._start_sync_server()
+            server = getattr(self, "sync_server", None)
+        if server is None or not server.running:
+            QMessageBox.warning(
+                self,
+                "Telefon ulash",
+                "Sync server ishga tushmadi (port band bo'lishi mumkin).\n"
+                "Dasturdan ortiqcha nusxa ishlayotgan bo'lsa yoping va qayta urining.",
+            )
+            return
+        dlg = PhoneDialog(self)
+        dlg.exec()
+
     def _on_update_btn_clicked(self) -> None:
         info = getattr(self, "_update_info", None)
-        if not info:
-            return
         from PySide2.QtWidgets import QMessageBox
+
+        if not info:
+            try:
+                from version import VERSION
+            except Exception:
+                VERSION = "1.3.10"
+            QMessageBox.information(
+                self,
+                "Yangilanishlar",
+                "Sizda eng so'nggi versiya (v%s) o'rnatilgan.\n\nYangilanishlar mavjud emas." % VERSION,
+            )
+            return
 
         from services import update_service
 

@@ -1,20 +1,33 @@
 package uz.kursmanager.ui
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import uz.kursmanager.BuildConfig
 import uz.kursmanager.R
 import uz.kursmanager.app
 import uz.kursmanager.databinding.ActivityMainBinding
 import uz.kursmanager.sync.SyncWorker
 import uz.kursmanager.update.UpdateChecker
+import uz.kursmanager.update.UpdateInfo
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,7 +38,10 @@ class MainActivity : AppCompatActivity() {
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        b.btnMenu.setOnClickListener { b.drawer.openDrawer(GravityCompat.START) }
+        b.btnMenu.setOnClickListener {
+            b.drawer.openDrawer(GravityCompat.START)
+            refreshUpdateIndicator()
+        }
         b.btnSync.setOnClickListener { onSyncClicked() }
 
         b.nav.setNavigationItemSelectedListener { item: MenuItem ->
@@ -33,11 +49,13 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.nav_dashboard -> open(DashboardFragment(), "Bosh sahifa")
                 R.id.nav_students -> open(StudentsFragment(), "O'quvchilar")
+                R.id.nav_groups -> open(GroupsFragment(), "Guruhlar")
                 R.id.nav_payments -> open(PaymentsFragment(), "To'lovlar")
                 R.id.nav_tests -> open(TestsFragment(), "Test natijalari")
                 R.id.nav_attendance -> open(AttendanceFragment(), "Davomat")
                 R.id.nav_reminders -> open(RemindersFragment(), "Eslatmalar")
                 R.id.nav_reports -> open(ReportsFragment(), "Hisobotlar")
+                R.id.nav_update -> onUpdateMenuClicked()
                 R.id.nav_pairing -> startActivity(Intent(this, PairingActivity::class.java))
                 R.id.nav_sync -> onSyncClicked()
             }
@@ -60,28 +78,83 @@ class MainActivity : AppCompatActivity() {
 
         // Yangi versiyani tekshirish
         checkForUpdate()
+
+        // Android 13+ bildirishnoma ruxsatini so'rash
+        requestNotificationPermission()
     }
+
+    private var cachedUpdateInfo: UpdateInfo? = null
 
     private fun checkForUpdate() {
         lifecycleScope.launch {
-            val info = UpdateChecker.checkForUpdate() ?: return@launch
-            AlertDialog.Builder(this@MainActivity)
-                .setTitle("Yangi versiya mavjud!")
-                .setMessage("Versiya: ${info.version}\n\n${info.notes}\n\nHozir yuklab o'rnatilsinmi?")
-                .setPositiveButton("Ha, yangilash") { _, _ ->
-                    lifecycleScope.launch {
-                        Toast.makeText(this@MainActivity, "Yuklanmoqda...", Toast.LENGTH_SHORT).show()
-                        val ok = UpdateChecker.downloadAndInstall(this@MainActivity, info) { progress ->
-                            // Progress bar qo'shish mumkin
-                        }
-                        if (!ok) {
-                            Toast.makeText(this@MainActivity, "Yuklab bo'lmadi. Internetni tekshiring.", Toast.LENGTH_LONG).show()
-                        }
+            val info = UpdateChecker.checkForUpdate()
+            cachedUpdateInfo = info
+            // Indikator: yangilanish bor bo'lsa ko'k yonadi, aks holda o'chiq (default)
+            applyUpdateIndicator(info != null)
+            if (info != null) showUpdateDialog(info)
+        }
+    }
+
+    private fun applyUpdateIndicator(hasUpdate: Boolean) {
+        val item = b.nav.menu.findItem(R.id.nav_update) ?: return
+        val base = getString(R.string.menu_update)
+        if (!hasUpdate) {
+            item.title = base
+            item.icon?.setTint(ContextCompat.getColor(this, R.color.text_dim))
+            return
+        }
+        val text = "$base  •"
+        val span = SpannableString(text)
+        val blue = ContextCompat.getColor(this, R.color.primary)
+        span.setSpan(ForegroundColorSpan(blue), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        span.setSpan(StyleSpan(Typeface.BOLD), 0, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        item.title = span
+        item.icon = item.icon?.mutate()?.also { it.setTint(blue) }
+    }
+
+    // Menyu ochilganda indikatorni yangilash (dialogsiz)
+    private fun refreshUpdateIndicator() {
+        applyUpdateIndicator(cachedUpdateInfo != null)
+        if (cachedUpdateInfo != null) return
+        lifecycleScope.launch {
+            val info = UpdateChecker.checkForUpdate()
+            if (info != null) {
+                cachedUpdateInfo = info
+                applyUpdateIndicator(true)
+            }
+        }
+    }
+
+    private fun onUpdateMenuClicked() {
+        val info = cachedUpdateInfo
+        if (info != null) {
+            showUpdateDialog(info)
+        } else {
+            Toast.makeText(
+                this,
+                "Sizda eng so'nggi versiya (v${BuildConfig.VERSION_NAME}) o'rnatilgan.\n\nYangilanishlar mavjud emas.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun showUpdateDialog(info: UpdateInfo) {
+        AlertDialog.Builder(this@MainActivity)
+            .setTitle("🔵 Yangilanish mavjud!")
+            .setMessage("Versiya: ${info.version}\n\n${info.notes}\n\nHozir yuklab o'rnatilsinmi?")
+            .setPositiveButton("Ha, yangilash") { _, _ ->
+                lifecycleScope.launch {
+                    Toast.makeText(this@MainActivity, "Yuklanmoqda...", Toast.LENGTH_SHORT).show()
+                    val ok = UpdateChecker.downloadAndInstall(this@MainActivity, info) { progress ->
+                        // Progress callback
+                    }
+                    if (!ok) {
+                        Toast.makeText(this@MainActivity, "Yuklab bo'lmadi. Internetni tekshiring.", Toast.LENGTH_LONG).show()
                     }
                 }
-                .setNegativeButton("Keyinroq", null)
-                .show()
-        }
+            }
+            .setNegativeButton("Keyinroq", null)
+            .show()
     }
 
     private fun open(f: Fragment, title: String) {
@@ -108,6 +181,14 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(this@MainActivity, "Xato: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
             }
         }
     }

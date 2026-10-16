@@ -327,6 +327,9 @@ def update_student(student_id, full_name, phone, course_id, payment_status, note
             day = max(1, min(day, max_day))
             # Faqat KUN o'zgaradi (oy/yil o'zgarmaydi — oy belgilari saqlanadi)
             st.created_at = datetime(base.year, base.month, day)
+        from services.sync_service import touch as _touch
+
+        _touch(st)
     if paid_months is not None:
         from services.monthly_payment_service import set_manual_months
 
@@ -344,9 +347,18 @@ def delete_student(student_id: int) -> None:
         if not st:
             raise ValueError("O'quvchi topilmadi.")
         gone_name = st.full_name
+        gone_uid = st.uid or ""
+        # Kaskad o'chiriladigan bolalarni o'chirishdan oldin yig'ish
+        from services.sync_service import collect_cascade
+
+        kids = collect_cascade([st])
         s.delete(st)
     from services import activity_service as _act
+    from services.sync_service import tomb as _tomb, tomb_rows as _tomb_rows
 
+    _tomb("students", student_id, gone_uid)
+    for tbl, rows in kids.items():
+        _tomb_rows(tbl, rows)
     _act.log("student", f"O'quvchi o'chirildi: {gone_name}", gone_name)
 
 
@@ -361,6 +373,9 @@ def set_payment_status(student_id: int, new_status: str, note: str = "") -> None
         old_status = st.payment_status
         st.payment_status = new_status
         who = st.full_name
+        from services.sync_service import touch as _touch
+
+        _touch(st)
         amount = _fee_of(st)
         s.add(
             Payment(

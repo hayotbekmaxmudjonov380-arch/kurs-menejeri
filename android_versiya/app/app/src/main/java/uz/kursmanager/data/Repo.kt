@@ -36,6 +36,64 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
         }
     }
 
+    // ---------- Groups ----------
+    suspend fun groups(): List<Group> = db.groups().all()
+    suspend fun groupMemberCount(groupUid: String): Int =
+        db.groupMembers().all().count { it.groupUid == groupUid }
+    suspend fun groupMembers(groupUid: String): List<GroupMember> =
+        db.groupMembers().all().filter { it.groupUid == groupUid }
+    suspend fun studentsNotInGroup(groupUid: String): List<Student> {
+        val inGroup = db.groupMembers().all()
+            .filter { it.groupUid == groupUid }
+            .map { it.studentUid }.toSet()
+        return db.students().all().filter { it.uid !in inGroup }
+    }
+
+    suspend fun addGroup(name: String): Long {
+        val e = Group(uid = newUid(), name = name.trim(), created_at = nowIso(), updated_at = nowIso())
+        val id = db.groups().upsert(e)
+        sync.enqueue("groups", e.uid, false, gson.toJson(mapOf(
+            "uid" to e.uid, "name" to e.name,
+            "created_at" to e.created_at, "updated_at" to e.updated_at
+        )))
+        return id
+    }
+
+    suspend fun renameGroup(uid: String, name: String) {
+        val cur = db.groups().byUid(uid) ?: return
+        val upd = cur.copy(name = name.trim(), updated_at = nowIso())
+        db.groups().upsert(upd)
+        sync.enqueue("groups", uid, false, gson.toJson(mapOf(
+            "uid" to uid, "name" to upd.name,
+            "created_at" to upd.created_at, "updated_at" to upd.updated_at
+        )))
+    }
+
+    suspend fun deleteGroup(uid: String) {
+        for (m in groupMembers(uid)) {
+            db.groupMembers().deleteByUid(m.uid)
+            sync.markDeleted("group_members", m.uid)
+        }
+        sync.markDeleted("groups", uid)
+    }
+
+    suspend fun addGroupMember(groupUid: String, studentUid: String) {
+        val st = db.students().byUid(studentUid) ?: return
+        val g = db.groups().byUid(groupUid) ?: return
+        val e = GroupMember(
+            uid = newUid(), groupId = g.id, groupUid = groupUid,
+            studentId = st.id, studentUid = studentUid,
+            created_at = nowIso(), updated_at = nowIso()
+        )
+        db.groupMembers().upsert(e)
+        sync.enqueue("group_members", e.uid, false, gson.toJson(mapOf(
+            "uid" to e.uid, "group_id_uid" to groupUid, "student_id_uid" to studentUid,
+            "created_at" to e.created_at, "updated_at" to e.updated_at
+        )))
+    }
+
+    suspend fun removeGroupMember(memberUid: String) = sync.markDeleted("group_members", memberUid)
+
     // ---------- Students ----------
     suspend fun students(): List<Student> = db.students().all()
     suspend fun studentCount(): Int = db.students().count()

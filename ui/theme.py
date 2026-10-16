@@ -121,6 +121,28 @@ QLabel {
     color: #ffffff;
     padding-left: 22px;
 }
+#updateBtn {
+    background: transparent;
+    border: 1px solid #27365b;
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+}
+#updateBtn:hover {
+    border-color: #3b82f6;
+    color: #e2e8f0;
+}
+#updateBtn[updateAvailable="true"] {
+    background-color: #2563eb;
+    border: 1px solid #3b82f6;
+    color: #ffffff;
+    font-weight: 700;
+}
+#updateBtn[updateAvailable="true"]:hover {
+    background-color: #1d4ed8;
+}
 #profileCard {
     background: #131c33;
     border: 1px solid #223055;
@@ -514,6 +536,28 @@ QLabel {
     border-left: 5px solid #2f81f7;
     color: #0b1830;
     padding-left: 22px;
+}
+#updateBtn {
+    background: transparent;
+    border: 1px solid #d5deec;
+    border-radius: 10px;
+    color: #8595ad;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+}
+#updateBtn:hover {
+    border-color: #3b82f6;
+    color: #0b1830;
+}
+#updateBtn[updateAvailable="true"] {
+    background-color: #2563eb;
+    border: 1px solid #3b82f6;
+    color: #ffffff;
+    font-weight: 700;
+}
+#updateBtn[updateAvailable="true"]:hover {
+    background-color: #1d4ed8;
 }
 #themeToggle {
     background: transparent;

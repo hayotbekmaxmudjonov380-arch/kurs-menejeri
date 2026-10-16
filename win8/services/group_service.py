@@ -89,6 +89,9 @@ def update_group(group_id: int, name: str) -> None:
             raise ValueError("Bu nomdagi guruh allaqachon mavjud.")
         old_name = g.name
         g.name = name
+        from services.sync_service import touch as _touch
+
+        _touch(g)
     from services import activity_service as _act
 
     _act.log("group", f"Guruh nomi o'zgartirildi: {old_name} → {name}")
@@ -101,9 +104,19 @@ def delete_group(group_id: int) -> None:
         if not g:
             raise ValueError("Guruh topilmadi.")
         gone_name = g.name
+        gone_uid = g.uid or ""
+        member_keys = [
+            (r.id, r.uid or "") for r in s.query(GroupMember).filter(
+                GroupMember.group_id == group_id
+            ).all()
+        ]
         s.delete(g)
     from services import activity_service as _act
+    from services.sync_service import tomb as _tomb
 
+    _tomb("groups", group_id, gone_uid)
+    for mid, muid in member_keys:
+        _tomb("group_members", mid, muid)
     _act.log("group", f"Guruh o'chirildi: {gone_name}")
 
 
@@ -195,9 +208,13 @@ def remove_member(group_id: int, student_id: int) -> None:
             raise ValueError("A'zolik topilmadi.")
         who = row.student.full_name if row.student else ""
         where = row.group.name if row.group else ""
+        mid = row.id
+        muid = row.uid or ""
         s.delete(row)
     from services import activity_service as _act
+    from services.sync_service import tomb as _tomb
 
+    _tomb("group_members", mid, muid)
     _act.log("group", f"Guruhdan chiqarildi: {who} ← {where}", who)
 
 
@@ -222,11 +239,20 @@ def set_student_groups(student_id: int, group_ids: list[int]) -> None:
         for gid in clean:
             if not s.query(Group).filter(Group.id == gid).first():
                 raise ValueError("Guruh topilmadi.")
+        old_keys = [
+            (r.id, r.uid or "") for r in s.query(GroupMember).filter(
+                GroupMember.student_id == student_id
+            ).all()
+        ]
         s.query(GroupMember).filter(
             GroupMember.student_id == student_id
         ).delete()
         for gid in clean:
             s.add(GroupMember(group_id=gid, student_id=student_id))
+    from services.sync_service import tomb as _tomb
+
+    for mid, muid in old_keys:
+        _tomb("group_members", mid, muid)
 
 
 def move_member(from_group_id: int, to_group_id: int, student_id: int) -> str:
@@ -264,11 +290,15 @@ def move_member(from_group_id: int, to_group_id: int, student_id: int) -> str:
         )
         if exists:
             raise ValueError("O'quvchi tanlangan guruhda allaqachon bor.")
+        mid = row.id
+        muid = row.uid or ""
         s.delete(row)
         s.add(GroupMember(group_id=to_group_id, student_id=student_id))
         who = st.full_name
         src_name, dst_name = src.name, dst.name
     from services import activity_service as _act
+    from services.sync_service import tomb as _tomb
 
+    _tomb("group_members", mid, muid)
     _act.log("group", f"Guruh almashtirildi: {who}: {src_name} → {dst_name}", who)
     return dst_name

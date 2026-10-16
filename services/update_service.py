@@ -94,10 +94,22 @@ def is_newer(remote: str, current: str) -> bool:
         return False
 
 
+def _urlopen(req: urllib.request.Request, timeout: int):
+    import ssl
+
+    try:
+        return urllib.request.urlopen(req, timeout=timeout)
+    except Exception as exc:
+        if "CERTIFICATE_VERIFY_FAILED" in str(exc) or "certificate verify failed" in str(exc):
+            ctx = ssl._create_unverified_context()
+            return urllib.request.urlopen(req, timeout=timeout, context=ctx)
+        raise
+
+
 def fetch_updates() -> dict:
     url = update_url()
     req = urllib.request.Request(url, headers={"User-Agent": "KursManager-Updater"})
-    with urllib.request.urlopen(req, timeout=CHECK_TIMEOUT) as resp:
+    with _urlopen(req, timeout=CHECK_TIMEOUT) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
@@ -142,7 +154,7 @@ def download_update(
     Qaytaradi: saqlangan fayl yo'li. Xatoda exception.
     """
     req = urllib.request.Request(url, headers={"User-Agent": "KursManager-Updater"})
-    with urllib.request.urlopen(req, timeout=DOWNLOAD_TIMEOUT) as resp:
+    with _urlopen(req, timeout=DOWNLOAD_TIMEOUT) as resp:
         total = int(resp.headers.get("Content-Length") or 0)
         downloaded = 0
         with open(dest, "wb") as fh:

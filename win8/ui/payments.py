@@ -211,5 +211,7 @@ class PaymentsPage(QWidget):
         try:
             mp.set_status(student_id, self.year, month, nxt)
             self.refresh()
+            # Boshqa bo'limlar (O'quvchilar, Dashboard) ham yangilansin
+            self.data_changed.emit()
         except Exception as exc:  # noqa: BLE001
             dialogs.error_from_exception(self, exc)

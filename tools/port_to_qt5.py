@@ -114,6 +114,7 @@ MODELS_FIXES = [
     ("from datetime import datetime",
      "from datetime import datetime\nfrom typing import Optional"),
     ("Mapped[int | None]", "Mapped[Optional[int]]"),
+    ("Mapped[datetime | None]", "Mapped[Optional[datetime]]"),
     ('Mapped["Course | None"]', 'Mapped[Optional["Course"]]'),
     ('Mapped["Student"]', 'Mapped["Student"]'),
 ]

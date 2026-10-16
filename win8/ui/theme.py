@@ -121,6 +121,28 @@ QLabel {
     color: #ffffff;
     padding-left: 22px;
 }
+#updateBtn {
+    background: transparent;
+    border: 1px solid #27365b;
+    border-radius: 10px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+}
+#updateBtn:hover {
+    border-color: #3b82f6;
+    color: #e2e8f0;
+}
+#updateBtn[updateAvailable="true"] {
+    background-color: #2563eb;
+    border: 1px solid #3b82f6;
+    color: #ffffff;
+    font-weight: 700;
+}
+#updateBtn[updateAvailable="true"]:hover {
+    background-color: #1d4ed8;
+}
 #profileCard {
     background: #131c33;
     border: 1px solid #223055;
@@ -354,6 +376,60 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
     border-color: #22c55e;
 }
 
+/* ===== Telefon ulash oynasi ===== */
+#phoneAvatar {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #3b82f6, stop:1 #1e3a8a);
+    color: #ffffff;
+    border-radius: 23px;
+    font-size: 20px;
+}
+#codeCard {
+    background-color: #0f1a33;
+    border: 1px solid #23375f;
+    border-radius: 14px;
+}
+#codeValue {
+    color: #3b82f6;
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    background: transparent;
+    border: none;
+}
+#countPill {
+    background-color: rgba(59, 130, 246, 0.16);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.45);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+#deviceList {
+    background-color: #0f1830;
+    border: 1px solid #27365b;
+    border-radius: 12px;
+    padding: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+#deviceList::item {
+    background: transparent;
+    color: #cbd5e1;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+#deviceList::item:hover {
+    background-color: rgba(59, 130, 246, 0.12);
+    border-color: #3b82f6;
+}
+#deviceList::item:selected {
+    background-color: rgba(239, 68, 68, 0.14);
+    border: 1px solid #ef4444;
+    color: #fca5a5;
+}
+
 /* ===== Register-uslubidagi formalar ===== */
 QDialog[formStyle="register"] {
     background-color: #1a1a1a;
@@ -460,6 +536,28 @@ QLabel {
     border-left: 5px solid #2f81f7;
     color: #0b1830;
     padding-left: 22px;
+}
+#updateBtn {
+    background: transparent;
+    border: 1px solid #d5deec;
+    border-radius: 10px;
+    color: #8595ad;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px;
+}
+#updateBtn:hover {
+    border-color: #3b82f6;
+    color: #0b1830;
+}
+#updateBtn[updateAvailable="true"] {
+    background-color: #2563eb;
+    border: 1px solid #3b82f6;
+    color: #ffffff;
+    font-weight: 700;
+}
+#updateBtn[updateAvailable="true"]:hover {
+    background-color: #1d4ed8;
 }
 #themeToggle {
     background: transparent;
@@ -705,6 +803,60 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
 #groupsList::indicator:checked {
     background-color: #16a34a;
     border-color: #16a34a;
+}
+
+/* ===== Telefon ulash oynasi (light) ===== */
+#phoneAvatar {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #3b82f6, stop:1 #1e3a8a);
+    color: #ffffff;
+    border-radius: 23px;
+    font-size: 20px;
+}
+#codeCard {
+    background-color: #eef4ff;
+    border: 1px solid #c9dbfb;
+    border-radius: 14px;
+}
+#codeValue {
+    color: #1d4ed8;
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    background: transparent;
+    border: none;
+}
+#countPill {
+    background-color: rgba(37, 99, 235, 0.12);
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.4);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+}
+#deviceList {
+    background-color: #ffffff;
+    border: 1px solid #c2cfe2;
+    border-radius: 12px;
+    padding: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+#deviceList::item {
+    background: transparent;
+    color: #33415c;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+#deviceList::item:hover {
+    background-color: rgba(43, 127, 255, 0.10);
+    border-color: #3b82f6;
+}
+#deviceList::item:selected {
+    background-color: rgba(239, 68, 68, 0.12);
+    border: 1px solid #ef4444;
+    color: #b91c1c;
 }
 
 /* ===== Register-uslubidagi formalar (har doim dark) ===== */

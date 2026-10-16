@@ -13,7 +13,7 @@ from datetime import date as _date
 from typing import Any
 
 from database.database import DATABASE
-from database.models import MonthlyPayment, Student
+from database.models import MonthlyPayment, PaymentStatus, Student
 
 logger = logging.getLogger(__name__)
 
@@ -117,14 +117,35 @@ def set_status(
             )
             .first()
         )
+        from services.sync_service import touch as _touch
+        from services.sync_service import tomb as _tomb
+
         who = st.full_name
+
+        # ✓/✗ → o'quvchining umumiy to'lov holati ham yangilanadi
+        # (Ro'yxatga olish bo'limidagi badge shu zahoti o'zgaradi)
+        status_changed = False
+        old_student_status = st.payment_status
+        if paid is True:
+            new_student_status = PaymentStatus.PAID
+        elif paid is False:
+            new_student_status = PaymentStatus.UNPAID
+        else:
+            new_student_status = None
+        if new_student_status and st.payment_status != new_student_status:
+            st.payment_status = new_student_status
+            _touch(st)
+            status_changed = True
+
         if paid is None:
             if row:
+                _tomb("monthly_payments", row.id, row.uid or "")
                 s.delete(row)
             result = "none"
         elif row:
             row.paid = paid
             row.amount = amount if paid else 0.0
+            _touch(row)
             result = "1" if paid else "0"
         else:
             s.add(
@@ -150,6 +171,18 @@ def set_status(
         f"Oylik to'lov: {who} — {MONTH_NAMES[month - 1]} {year}: {mark}",
         who,
     )
+    if status_changed:
+        labels = {
+            PaymentStatus.PAID: "To'lov qilingan",
+            PaymentStatus.UNPAID: "To'lov qilinmagan",
+        }
+        _act.log(
+            "payment",
+            f"To'lov holati: {who}: "
+            f"{labels.get(old_student_status, old_student_status)} → "
+            f"{labels.get(new_student_status, new_student_status)}",
+            who,
+        )
     return result
 
 
@@ -263,10 +296,19 @@ def set_manual_months(student_id: int, months: list[int]) -> None:
             raise ValueError("O'quvchi topilmadi.")
         who = st.full_name
         year = st.created_at.year if st.created_at else _date.today().year
-        s.query(MonthlyPayment).filter(
-            MonthlyPayment.student_id == student_id,
-            MonthlyPayment.year == year,
-        ).delete()
+        old_rows = (
+            s.query(MonthlyPayment)
+            .filter(
+                MonthlyPayment.student_id == student_id,
+                MonthlyPayment.year == year,
+            )
+            .all()
+        )
+        from services.sync_service import tomb as _tomb
+
+        for old in old_rows:
+            _tomb("monthly_payments", old.id, old.uid or "")
+            s.delete(old)
         for m in clean:
             s.add(MonthlyPayment(student_id=student_id, year=year, month=m, paid=True))
     if clean:

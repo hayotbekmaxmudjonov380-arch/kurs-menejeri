@@ -3,6 +3,7 @@
     <group android:checkableBehavior="single">
         <item android:id="@+id/nav_dashboard" android:icon="@drawable/ic_home" android:title="@string/menu_dashboard" />
         <item android:id="@+id/nav_students" android:icon="@drawable/ic_users" android:title="@string/menu_students" />
+        <item android:id="@+id/nav_groups" android:icon="@drawable/ic_groups" android:title="@string/menu_groups" />
         <item android:id="@+id/nav_payments" android:icon="@drawable/ic_card" android:title="@string/menu_payments" />
         <item android:id="@+id/nav_tests" android:icon="@drawable/ic_test" android:title="@string/menu_tests" />
         <item android:id="@+id/nav_attendance" android:icon="@drawable/ic_calendar" android:title="@string/menu_attendance" />
@@ -11,6 +12,7 @@
     </group>
     <item android:title="Aloqa">
         <menu>
+            <item android:id="@+id/nav_update" android:icon="@drawable/ic_sync" android:title="@string/menu_update" />
             <item android:id="@+id/nav_pairing" android:icon="@drawable/ic_link" android:title="@string/menu_pairing" />
             <item android:id="@+id/nav_sync" android:icon="@drawable/ic_sync" android:title="@string/menu_sync" />
         </menu>

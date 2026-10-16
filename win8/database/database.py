@@ -149,6 +149,98 @@ class Database:
                         )
                         conn.commit()
                         logger.info("Migration: monthly_payments.amount ustuni qo'shildi")
+                # Sinxronizatsiya uchun updated_at (qaysi yozuv yangiroq)
+                for _tbl in (
+                    "students", "payments", "test_results", "reminders",
+                    "groups", "group_members", "monthly_payments", "attendance",
+                    "courses",
+                ):
+                    if _tbl not in tables:
+                        continue
+                    _cols = [
+                        r[1] for r in conn.execute(
+                            f"PRAGMA table_info({_tbl})"
+                        ).fetchall()
+                    ]
+                    if "updated_at" not in _cols:
+                        conn.execute(
+                            f"ALTER TABLE {_tbl} ADD COLUMN updated_at DATETIME"
+                        )
+                        conn.commit()
+                        logger.info("Migration: %s.updated_at ustuni qo'shildi", _tbl)
+                    if "created_at" in _cols:
+                        _filled = conn.execute(
+                            f"UPDATE {_tbl} SET updated_at = created_at "
+                            f"WHERE updated_at IS NULL AND created_at IS NOT NULL"
+                        ).rowcount
+                    else:
+                        _filled = conn.execute(
+                            f"UPDATE {_tbl} SET updated_at = CURRENT_TIMESTAMP "
+                            f"WHERE updated_at IS NULL"
+                        ).rowcount
+                    if _filled:
+                        conn.commit()
+                        logger.info(
+                            "Migration: %s.updated_at to'ldirildi (%d)",
+                            _tbl, _filled,
+                        )
+                # Sinxron kaliti: uid (har bir yozuvga UUID).
+                # id bo'yicha sinxron xato bo'lardi — ikki qurilmada
+                # id lar turli bo'ladi, uid esa global.
+                import uuid as _uuid
+
+                for _tbl in (
+                    "courses", "students", "payments", "test_results", "reminders",
+                    "groups", "group_members", "monthly_payments", "attendance",
+                ):
+                    if _tbl not in tables:
+                        continue
+                    _cols = [
+                        r[1] for r in conn.execute(
+                            f"PRAGMA table_info({_tbl})"
+                        ).fetchall()
+                    ]
+                    if "uid" not in _cols:
+                        conn.execute(
+                            f"ALTER TABLE {_tbl} ADD COLUMN uid VARCHAR(32)"
+                        )
+                        conn.commit()
+                        logger.info("Migration: %s.uid ustuni qo'shildi", _tbl)
+                    # Har bir qatorga alohida UUID (bo'sh qiymat qolmasligi uchun
+                    # NULL ham bo'lsa, alohida beriladi — unique index shart)
+                    _missing = conn.execute(
+                        f"SELECT id FROM {_tbl} WHERE uid IS NULL OR uid = ''"
+                    ).fetchall()
+                    for _row in _missing:
+                        conn.execute(
+                            f"UPDATE {_tbl} SET uid = ? WHERE id = ?",
+                            (_uuid.uuid4().hex, _row[0]),
+                        )
+                    if _missing:
+                        conn.commit()
+                        logger.info(
+                            "Migration: %s.uid to'ldirildi (%d)",
+                            _tbl, len(_missing),
+                        )
+                    # NULL/'' qoldirmaslik uchun unique index
+                    conn.execute(
+                        f"CREATE UNIQUE INDEX IF NOT EXISTS "
+                        f"idx_{_tbl}_uid ON {_tbl}(uid)"
+                    )
+                    conn.commit()
+                if "tombstones" in tables:
+                    _t_cols = [
+                        r[1] for r in conn.execute(
+                            "PRAGMA table_info(tombstones)"
+                        ).fetchall()
+                    ]
+                    if "row_uid" not in _t_cols:
+                        conn.execute(
+                            "ALTER TABLE tombstones ADD COLUMN row_uid VARCHAR(32) "
+                            "DEFAULT ''"
+                        )
+                        conn.commit()
+                        logger.info("Migration: tombstones.row_uid ustuni qo'shildi")
             finally:
                 conn.close()
         except Exception:

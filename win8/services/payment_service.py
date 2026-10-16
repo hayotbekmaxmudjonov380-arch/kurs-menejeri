@@ -94,6 +94,9 @@ def update_payment(payment_id, amount, status, payment_date, note) -> None:
         payment.status = status
         payment.payment_date = payment_date
         payment.note = note.strip()
+        from services.sync_service import touch as _touch
+
+        _touch(payment)
 
 
 def delete_payment(payment_id: int) -> None:
@@ -101,7 +104,11 @@ def delete_payment(payment_id: int) -> None:
         payment = s.query(Payment).filter(Payment.id == payment_id).first()
         if not payment:
             raise ValueError("To'lov topilmadi.")
+        gone_uid = payment.uid or ""
         s.delete(payment)
+    from services.sync_service import tomb as _tomb
+
+    _tomb("payments", payment_id, gone_uid)
 
 
 def count_payments(search: str = "", status: str | None = None) -> int:

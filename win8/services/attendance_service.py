@@ -71,12 +71,17 @@ def set_attendance(student_id: int, att_date: date, present: bool | None) -> dic
             )
             .first()
         )
+        from services.sync_service import touch as _touch
+        from services.sync_service import tomb as _tomb
+
         if present is None:
             if row:
+                _tomb("attendance", row.id, row.uid or "")
                 s.delete(row)
         else:
             if row:
                 row.present = present
+                _touch(row)
             else:
                 s.add(Attendance(student_id=student_id, att_date=att_date, present=present))
         s.flush()

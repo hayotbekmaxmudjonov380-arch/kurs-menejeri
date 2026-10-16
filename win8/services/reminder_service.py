@@ -101,6 +101,9 @@ def update_reminder(
         if remind_at:
             r.remind_at = remind_at
             r.notified = False
+        from services.sync_service import touch as _touch
+
+        _touch(r)
     from services import activity_service as _act
 
     _act.log("reminder", f"Eslatma yangilandi: {title}")
@@ -112,9 +115,12 @@ def delete_reminder(reminder_id: int) -> None:
         if not r:
             raise ValueError("Eslatma topilmadi.")
         gone_title = r.title
+        gone_uid = r.uid or ""
         s.delete(r)
     from services import activity_service as _act
+    from services.sync_service import tomb as _tomb
 
+    _tomb("reminders", reminder_id, gone_uid)
     _act.log("reminder", f"Eslatma o'chirildi: {gone_title}")
 
 
@@ -124,6 +130,9 @@ def set_done(reminder_id: int, done: bool) -> None:
         if r:
             r.is_done = done
             done_title = r.title
+            from services.sync_service import touch as _touch
+
+            _touch(r)
         else:
             return
     from services import activity_service as _act

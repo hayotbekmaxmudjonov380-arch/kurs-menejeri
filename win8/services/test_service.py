@@ -168,6 +168,9 @@ def update_result(
         if result_date:
             t.result_date = result_date
         t.note = (note or "").strip()
+        from services.sync_service import touch as _touch
+
+        _touch(t)
         who = t.student.full_name if t.student else ""
         pct = t.percentage
     from services import activity_service as _act
@@ -186,7 +189,10 @@ def delete_result(result_id: int) -> None:
             raise ValueError("Natija topilmadi.")
         who = t.student.full_name if t.student else ""
         topic = t.topic
+        gone_uid = t.uid or ""
         s.delete(t)
     from services import activity_service as _act
+    from services.sync_service import tomb as _tomb
 
+    _tomb("test_results", result_id, gone_uid)
     _act.log("test", f"Test natijasi o'chirildi: {who} — {topic}", who)
