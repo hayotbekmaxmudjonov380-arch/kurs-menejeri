@@ -18,4 +18,12 @@
     <color name="red_dark">#E0324B</color>
     <color name="avatar_bg">#C3D4F5</color>
     <color name="avatar_fg">#1E3A8A</color>
+
+    <color name="primary_light">#5B9BFF</color>
+    <color name="nav_sel_bg">#1F2B7FFF</color>
+    <color name="nav_sel_stroke">#4D2B7FFF</color>
+    <color name="nav_ripple">#332B7FFF</color>
+    <color name="nav_ripple_dark">#22FFFFFF</color>
+    <color name="drawer_top">#0A1024</color>
+    <color name="drawer_bottom">#080D19</color>
 </resources>

@@ -11,5 +11,29 @@
         <item name="android:statusBarColor">@color/bg_dark</item>
         <item name="android:navigationBarColor">@color/bg_dark</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="colorOutlineVariant">@color/border</item>
+        <item name="colorOutline">#2A3A5C</item>
+        <item name="android:listDivider">@drawable/list_divider</item>
+    </style>
+
+    <style name="NavText">
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.015</item>
+    </style>
+
+    <style name="NavItemShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="NavSubheader">
+        <item name="android:textSize">11.5sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">6dp</item>
     </style>
 </resources>

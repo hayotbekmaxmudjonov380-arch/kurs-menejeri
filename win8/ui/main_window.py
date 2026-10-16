@@ -31,6 +31,7 @@ from ui.students import StudentsPage
 from ui.tests import TestsPage
 from ui import theme
 from utils.branding import logo_path, make_app_icon
+from version import VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -99,26 +100,47 @@ class MainWindow(QMainWindow):
         sidebar_layout.setContentsMargins(12, 16, 12, 14)
         sidebar_layout.setSpacing(6)
 
-        title = QLabel()
+        # ---------- Sarlavha (zamonaviy) ----------
+        header = QFrame()
+        header.setObjectName("sideHeader")
+        header_lay = QHBoxLayout(header)
+        header_lay.setContentsMargins(14, 14, 14, 14)
+        header_lay.setSpacing(11)
+
         logo_pix = QPixmap(str(logo_path()))
+        logo_lbl = QLabel()
+        logo_lbl.setObjectName("sideLogo")
         if not logo_pix.isNull():
-            title.setPixmap(
-                logo_pix.scaledToWidth(
-                    200, Qt.SmoothTransformation
+            logo_lbl.setPixmap(
+                logo_pix.scaled(
+                    46,
+                    46,
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation,
                 )
             )
         else:
-            title.setText("Kurs Manager")
-            title.setObjectName("sidebarTitle")
-        title.setAlignment(Qt.AlignCenter)
-        sidebar_layout.addWidget(title)
-        sidebar_layout.addSpacing(14)
+            logo_lbl.setText("KM")
+        logo_lbl.setFixedSize(46, 46)
+        logo_lbl.setAlignment(Qt.AlignCenter)
+        header_lay.addWidget(logo_lbl)
 
-        nav_box = QFrame()
-        nav_box.setObjectName("navBox")
-        nav_layout = QVBoxLayout(nav_box)
-        nav_layout.setContentsMargins(10, 10, 10, 10)
-        nav_layout.setSpacing(4)
+        head_text = QVBoxLayout()
+        head_text.setSpacing(1)
+        title = QLabel("Kurs Manager")
+        title.setObjectName("sideTitle")
+        sub = QLabel("O'quvchilar boshqaruvi")
+        sub.setObjectName("sideSub")
+        head_text.addWidget(title)
+        head_text.addWidget(sub)
+        header_lay.addLayout(head_text, 1)
+        sidebar_layout.addWidget(header)
+
+        chip = QLabel("●  v%s" % VERSION)
+        chip.setObjectName("sideChip")
+        chip.setAlignment(Qt.AlignCenter)
+        sidebar_layout.addWidget(chip, 0, Qt.AlignLeft)
+        sidebar_layout.addSpacing(16)
 
         self.nav_group = QButtonGroup(self)
         self.nav_group.setExclusive(True)
@@ -132,15 +154,22 @@ class MainWindow(QMainWindow):
             )
             self.nav_group.addButton(btn)
             self.nav_buttons[key] = btn
-            nav_layout.addWidget(btn)
-        sidebar_layout.addWidget(nav_box)
+            sidebar_layout.addWidget(btn)
+
+        sidebar_layout.addSpacing(6)
+        divider = QFrame()
+        divider.setObjectName("navDivider")
+        divider.setFixedHeight(1)
+        sidebar_layout.addWidget(divider)
+
+        section = QLabel("ALOQA")
+        section.setObjectName("navSection")
+        sidebar_layout.addWidget(section)
 
         self.theme_btn = QPushButton()
         self.theme_btn.setObjectName("themeToggle")
         self.theme_btn.setCursor(Qt.PointingHandCursor)
         self.theme_btn.clicked.connect(self.toggle_theme)
-        sidebar_layout.addWidget(self.theme_btn)
-        self._update_theme_btn()
 
         self.update_btn = QPushButton("🔄  Yangilanishlar")
         self.update_btn.setObjectName("updateBtn")
@@ -152,10 +181,13 @@ class MainWindow(QMainWindow):
         sidebar_layout.addWidget(self.update_btn)
 
         self.phone_btn = QPushButton("📱  Telefon ulash")
-        self.phone_btn.setObjectName("themeToggle")
+        self.phone_btn.setObjectName("updateBtn")
         self.phone_btn.setCursor(Qt.PointingHandCursor)
         self.phone_btn.clicked.connect(self._open_phone_dialog)
         sidebar_layout.addWidget(self.phone_btn)
+
+        sidebar_layout.addWidget(self.theme_btn)
+        self._update_theme_btn()
 
         sidebar_layout.addStretch(1)
 

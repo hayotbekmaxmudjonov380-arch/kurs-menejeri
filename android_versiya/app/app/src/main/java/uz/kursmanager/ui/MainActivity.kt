@@ -12,6 +12,7 @@ import android.text.Spanned
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
 import android.view.MenuItem
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -38,8 +39,13 @@ class MainActivity : AppCompatActivity() {
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
 
+        // Sarlavhadagi versiya chip'i (header layout kechikta inflate qilinishi
+        // mumkin, shuning uchun layout pass'dan keyin o'rnatamiz)
+        b.nav.post { applyHeaderVersion() }
+
         b.btnMenu.setOnClickListener {
             b.drawer.openDrawer(GravityCompat.START)
+            b.nav.post { applyHeaderVersion() }
             refreshUpdateIndicator()
         }
         b.btnSync.setOnClickListener { onSyncClicked() }
@@ -59,6 +65,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_pairing -> startActivity(Intent(this, PairingActivity::class.java))
                 R.id.nav_sync -> onSyncClicked()
             }
+            if (item.isCheckable) item.isChecked = true
+            refreshUpdateIndicator()
             true
         }
 
@@ -84,6 +92,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private var cachedUpdateInfo: UpdateInfo? = null
+
+    private fun applyHeaderVersion() {
+        val tv = b.nav.findViewById<TextView>(R.id.tvHeaderVersion) ?: return
+        tv.text = "v${BuildConfig.VERSION_NAME}"
+    }
 
     private fun checkForUpdate() {
         lifecycleScope.launch {
@@ -161,6 +174,18 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.content, f).commit()
         b.tvTitle.text = title
+        val id = when (title) {
+            "Bosh sahifa" -> R.id.nav_dashboard
+            "O'quvchilar" -> R.id.nav_students
+            "Guruhlar" -> R.id.nav_groups
+            "To'lovlar" -> R.id.nav_payments
+            "Test natijalari" -> R.id.nav_tests
+            "Davomat" -> R.id.nav_attendance
+            "Eslatmalar" -> R.id.nav_reminders
+            "Hisobotlar" -> R.id.nav_reports
+            else -> 0
+        }
+        if (id != 0) b.nav.setCheckedItem(id)
     }
 
     private fun onSyncClicked() {

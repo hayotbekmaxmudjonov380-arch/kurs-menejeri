@@ -87,61 +87,100 @@ QLabel {
     background-color: #0b1120;
     border-right: 1px solid #16203a;
 }
-#sidebarTitle {
+#sideHeader {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #071026, stop:0.55 #0c1b40, stop:1 #14356f);
+    border: 1px solid #1a2a52;
+    border-radius: 16px;
+}
+#sideLogo { background: transparent; border: none; }
+#sideTitle {
     color: #ffffff;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
 }
-#sidebarSub {
-    color: #64748b;
+#sideSub {
+    color: #9db4dc;
     font-size: 11px;
 }
-#navBox {
-    background-color: #0d1117;
-    border-radius: 12px;
+#sideChip {
+    background-color: rgba(43,127,255,0.16);
+    border: 1px solid rgba(59,130,246,0.45);
+    color: #7db0ff;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+}
+#navDivider {
+    background-color: #1c2742;
+    border: none;
+}
+#navSection {
+    color: #5b6b8c;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 9px 4px 5px 6px;
 }
 #navButton {
     background: transparent;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     border-radius: 10px;
-    color: #ffffff;
-    font-size: 15px;
+    color: #93a1bd;
+    font-size: 14px;
     font-weight: 600;
-    padding: 10px;
+    padding: 9px 10px;
     text-align: left;
 }
 #navButton:hover {
-    border: 2px solid #1a1f24;
-    color: #637185;
+    background-color: #131c33;
+    border: 1px solid #1c2742;
+    color: #e8eef7;
 }
 #navButton:checked {
-    background-color: #1a1f24;
-    border: 2px solid #1a1f24;
-    border-left: 5px solid #2f81f7;
-    color: #ffffff;
-    padding-left: 22px;
-}
-#updateBtn {
-    background: transparent;
-    border: 1px solid #27365b;
-    border-radius: 10px;
-    color: #94a3b8;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 8px;
-}
-#updateBtn:hover {
-    border-color: #3b82f6;
-    color: #e2e8f0;
-}
-#updateBtn[updateAvailable="true"] {
-    background-color: #2563eb;
-    border: 1px solid #3b82f6;
+    background-color: #16284a;
+    border: 1px solid #274b96;
     color: #ffffff;
     font-weight: 700;
 }
+#updateBtn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #93a1bd;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 9px 10px;
+    text-align: left;
+}
+#updateBtn:hover {
+    background-color: #131c33;
+    border: 1px solid #1c2742;
+    color: #e8eef7;
+}
+#updateBtn[updateAvailable="true"] {
+    background-color: #16284a;
+    border: 1px solid #274b96;
+    color: #5b9bff;
+    font-weight: 700;
+}
 #updateBtn[updateAvailable="true"]:hover {
-    background-color: #1d4ed8;
+    background-color: #1b3057;
+    border-color: #3b82f6;
+}
+#themeToggle {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #93a1bd;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 9px 10px;
+    text-align: left;
+}
+#themeToggle:hover {
+    background-color: #131c33;
+    border: 1px solid #1c2742;
+    color: #e8eef7;
 }
 #profileCard {
     background: #131c33;
@@ -503,73 +542,99 @@ QLabel {
     background-color: #ffffff;
     border-right: 1px solid #e0e7f2;
 }
-#sidebarTitle {
+#sideHeader {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #ffffff, stop:0.55 #eef4ff, stop:1 #d8e6ff);
+    border: 1px solid #d8e2f2;
+    border-radius: 16px;
+}
+#sideLogo { background: transparent; border: none; }
+#sideTitle {
     color: #0b1830;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 800;
 }
-#sidebarSub {
-    color: #8595ad;
+#sideSub {
+    color: #64748b;
     font-size: 11px;
 }
-#navBox {
-    background-color: #e7edf5;
-    border-radius: 12px;
+#sideChip {
+    background-color: #e8f0ff;
+    border: 1px solid #c8dbff;
+    color: #2563eb;
+    border-radius: 9px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+}
+#navDivider {
+    background-color: #e0e7f2;
+    border: none;
+}
+#navSection {
+    color: #8595ad;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 9px 4px 5px 6px;
 }
 #navButton {
     background: transparent;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     border-radius: 10px;
-    color: #0b1830;
-    font-size: 15px;
+    color: #4c5d78;
+    font-size: 14px;
     font-weight: 600;
-    padding: 10px;
+    padding: 9px 10px;
     text-align: left;
 }
 #navButton:hover {
-    border: 2px solid #c2cfe2;
-    color: #4c5d78;
+    background-color: #eef2f8;
+    border: 1px solid #dfe7f3;
+    color: #0b1830;
 }
 #navButton:checked {
-    background-color: #d7e1ef;
-    border: 2px solid #d7e1ef;
-    border-left: 5px solid #2f81f7;
+    background-color: #dbe7ff;
+    border: 1px solid #9dbdf7;
     color: #0b1830;
-    padding-left: 22px;
+    font-weight: 700;
 }
 #updateBtn {
     background: transparent;
-    border: 1px solid #d5deec;
+    border: 1px solid transparent;
     border-radius: 10px;
-    color: #8595ad;
-    font-size: 13px;
+    color: #64748b;
+    font-size: 13.5px;
     font-weight: 600;
-    padding: 8px;
+    padding: 9px 10px;
+    text-align: left;
 }
 #updateBtn:hover {
-    border-color: #3b82f6;
+    background-color: #eef2f8;
+    border: 1px solid #dfe7f3;
     color: #0b1830;
 }
 #updateBtn[updateAvailable="true"] {
-    background-color: #2563eb;
-    border: 1px solid #3b82f6;
-    color: #ffffff;
+    background-color: #e3edff;
+    border: 1px solid #9dbdf7;
+    color: #2563eb;
     font-weight: 700;
 }
 #updateBtn[updateAvailable="true"]:hover {
-    background-color: #1d4ed8;
+    background-color: #d4e3ff;
+    border-color: #3b82f6;
 }
 #themeToggle {
     background: transparent;
-    border: 1px solid #d5deec;
+    border: 1px solid transparent;
     border-radius: 10px;
-    color: #4c5d78;
-    font-size: 13px;
+    color: #64748b;
+    font-size: 13.5px;
     font-weight: 600;
-    padding: 8px;
+    padding: 9px 10px;
+    text-align: left;
 }
 #themeToggle:hover {
-    border-color: #3b82f6;
+    background-color: #eef2f8;
+    border: 1px solid #dfe7f3;
     color: #0b1830;
 }
 #profileCard {

@@ -1,21 +1,21 @@
 {
   "win10": {
-    "version": "1.3.9",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.1/KursManager.exe",
-    "sha256": "cfe170a43bd667432e85b55585c9f54d40955d8ee418f4ef80dd520b6444108b",
-    "notes": "Yangiliklar:\n- Menyuda doimiy «Yangilanishlar» tugmasi qo'shildi\n- Yangilanish mavjud bo'lsa tugma ko'k rangda yonadi\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- QR kod orqali telefon ulash\n- To'lov holati faqat To'lovlar bo'limidan boshqariladi\n- Avtomatik sinxronlashish\n- Ma'lumotlar yangilanishda saqlanadi"
+    "version": "1.3.10",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.2/KursManager.exe",
+    "sha256": "701c17bb995a8d5effce3a3ffab5f4cc245e723c39200902294ae4bad46cdec4",
+    "notes": "Yangiliklar:\n- Menyu yangilandi: gradient sarlavha, logotip, versiya chip'i\n- Tanlangan band pill-shaklda ko'k rangda ko'rinadi\n- «ALOQA» bo'limi qo'shildi\n- Yangilanish mavjud bo'lsa tugma ko'k rangda yonadi\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Ma'lumotlar yangilanishda saqlanadi"
   },
   "win8": {
-    "version": "1.3.9",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.1/KursManager.exe",
-    "sha256": "cfe170a43bd667432e85b55585c9f54d40955d8ee418f4ef80dd520b6444108b",
-    "notes": "Yangiliklar:\n- Menyuda doimiy «Yangilanishlar» tugmasi qo'shildi\n- Yangilanish mavjud bo'lsa tugma ko'k rangda yonadi\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish"
+    "version": "1.3.10",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.2/KursManager.exe",
+    "sha256": "701c17bb995a8d5effce3a3ffab5f4cc245e723c39200902294ae4bad46cdec4",
+    "notes": "Yangiliklar:\n- Menyu yangilandi: gradient sarlavha, logotip, versiya chip'i\n- Tanlangan band pill-shaklda ko'k rangda ko'rinadi\n- «ALOQA» bo'limi qo'shildi\n- Yangilanish mavjud bo'lsa tugma ko'k rangda yonadi\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- Avtomatik sinxronlashish"
   },
   "android": {
-    "version": "1.3.11",
-    "versionCode": 142,
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.1/KursManager-v1.3.11.apk",
-    "sha256": "97ca196ea459b454ce51197895aa67f85c0af3c2893c94f12fc6f00e49473c80",
-    "notes": "Yangiliklar:\n- Menyuda doimiy «Yangilanishlar» bandi qo'shildi\n- Yangilanish mavjud bo'lsa u ko'k rangda yonadi\n- Guruhlar bo'limi qo'shildi (guruh yaratish, a'zolar)\n- Android 8.0 va undan yuqori versiyalarda ishlaydi\n- Ma'lumotlar yangilanishda ham saqlanadi\n- Kurslar dublikati tuzatildi\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
+    "version": "1.3.12",
+    "versionCode": 143,
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.2/KursManager-v1.3.12.apk",
+    "sha256": "e96233d3ab3becd9c9ec34476fca80ec843bec6ef4001053042a5e15d3f3c1e1",
+    "notes": "Yangiliklar:\n- Drawer menyu qayta chizildi: gradient sarlavha, logotip, versiya chip'i\n- Tanlangan band pill-shaklda, ripple effekti bilan\n- «ALOQA» bo'limi qo'shildi\n- Yangilanish mavjud bo'lsa band ko'k rangda yonadi\n- Guruhlar bo'limi (guruh yaratish, a'zolar)\n- Android 8.0 va undan yuqori versiyalarda ishlaydi\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
   }
 }
