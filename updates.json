@@ -1,17 +1,17 @@
 {
   "win10": {
-    "version": "1.3.17",
+    "version": "1.3.18",
     "min_version": "1.3.17",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.4/KursManager.exe",
-    "sha256": "F8AF2CA20A86B1EDF21FA914D778FFAA8F50ECE15D009D6B228A61B31AA47F68",
-    "notes": "Yangiliklar:\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Telefon bilan sinxronlashish tugmasi joriy sahifada qoladi (Android)\n- Masofaviy yangilanish tugmasi sha256 nazorati bilan ishlaydi\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.5/KursManager.exe",
+    "sha256": "64AB594F0398F5F4BB548427E3A1FEBA20EED20FBBE80D187FCD35F6DAEB100A",
+    "notes": "Yangiliklar:\n- ⚠️ MUHIM Tuzatish: avtomatik yangilanishdagi «Failed to load Python DLL» xatosi yo'q qilindi (yangilashda dastur yopilib qolmasligi uchun)\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Telefon bilan sinxronlashish tugmasi joriy sahifada qoladi (Android)\n- Masofaviy yangilanish tugmasi sha256 nazorati bilan ishlaydi\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
   },
   "win8": {
-    "version": "1.3.17",
+    "version": "1.3.18",
     "min_version": "1.3.17",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.4/KursManager.exe",
-    "sha256": "F8AF2CA20A86B1EDF21FA914D778FFAA8F50ECE15D009D6B228A61B31AA47F68",
-    "notes": "Yangiliklar:\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Masofaviy yangilanish tugmasi sha256 nazorati bilan ishlaydi\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.5/KursManager.exe",
+    "sha256": "64AB594F0398F5F4BB548427E3A1FEBA20EED20FBBE80D187FCD35F6DAEB100A",
+    "notes": "Yangiliklar:\n- ⚠️ MUHIM Tuzatish: avtomatik yangilanishdagi «Failed to load Python DLL» xatosi yo'q qilindi (yangilashda dastur yopilib qolmasligi uchun)\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Masofaviy yangilanish tugmasi sha256 nazorati bilan ishlaydi\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
   },
   "android": {
     "version": "1.3.17",

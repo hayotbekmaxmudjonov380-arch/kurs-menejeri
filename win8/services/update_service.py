@@ -221,57 +221,132 @@ def download_dir() -> Path:
     return base
 
 
-def launch_updater(new_exe_path: str) -> bool:
+# PyInstaller onefile ota jarayon bolaga _MEIPASS ni o'zgaruvchi sifatida
+# o'tkazadi. Eski namuna yopilganda _MEI papkasini o'chiradi — agar .bat
+# orqali yangi exe shu iflos muhitda ishga tushsa, bootloader o'zini
+# "bola" deb olib, o'chirilgan papkadan python DLL izlaydi va
+# "Failed to load Python DLL" xatosi bilan yopiladi (kuzatilgan halokat).
+_STALE_ENV_PREFIX = "_MEI"
+_STALE_ENV_KEYS = ("PYTHONHOME", "PYTHONPATH")
+
+
+def _is_stale_env_key(key: str) -> bool:
+    up = key.upper()
+    return up.startswith(_STALE_ENV_PREFIX) or up in _STALE_ENV_KEYS
+
+
+def _clean_update_env(env: Optional[dict] = None) -> dict:
+    """Updater .bat uchun toza muhit (PyInstaller iflos o'zgaruvchilarsiz)."""
+    src = dict(os.environ if env is None else env)
+    return {k: v for k, v in src.items() if not _is_stale_env_key(k)}
+
+
+def _build_update_bat(current_exe: str, new_exe_path: str, pid: int) -> str:
+    """Almashtiruvchi .bat matnini quradi (sinovdan ajratilgan).
+
+    - WAITLOOP: ilova (va uning ota-bootloaderi) yopilishini kutadi
+    - TRYMOVE: exe fayl hali band bo'lsa (ota bootloader _MEI tozalayotganda,
+      AV skanerlaganda) 30 soniya davomida har soniyada urinib ko'radi
+    - HAR bir `start` dan oldin _MEIPASS/PYTHONHOME/PYTHONPATH tozalanadi —
+      aks holda PyInstaller yangi namunani eski "bola" deb olib ishga
+      tushmaydi (asosiy tuzatish shu)
+    """
+    bat = (
+        "@echo off\r\n"
+        "setlocal\r\n"
+        "set PID=%d\r\n"
+        'set "NEW=%s"\r\n'
+        'set "EXE=%s"\r\n'
+        "set TRIES=0\r\n"
+        ":WAITLOOP\r\n"
+        "tasklist /FI \"PID eq %%PID%%\" 2>NUL | "
+        "find /I \"%%PID%%\" >NUL\r\n"
+        "if not errorlevel 1 (ping -n 2 127.0.0.1 >NUL & goto WAITLOOP)\r\n"
+        'if exist "%%EXE%%.bak" del /F /Q "%%EXE%%.bak"\r\n'
+        'copy /Y "%%EXE%%" "%%EXE%%.bak" >NUL\r\n'
+        ":TRYMOVE\r\n"
+        'move /Y "%%NEW%%" "%%EXE%%" >NUL 2>&1\r\n'
+        "if not errorlevel 1 goto MOVED\r\n"
+        "set /a TRIES+=1\r\n"
+        "if %%TRIES%% GEQ 30 goto MOVEFAIL\r\n"
+        "ping -n 2 127.0.0.1 >NUL\r\n"
+        "goto TRYMOVE\r\n"
+        ":MOVEFAIL\r\n"
+        'copy /Y "%%EXE%%.bak" "%%EXE%%" >NUL 2>&1\r\n'
+        'set "_MEIPASS="\r\n'
+        'set "_MEIPASS2="\r\n'
+        'set "PYTHONHOME="\r\n'
+        'set "PYTHONPATH="\r\n'
+        'start "" "%%EXE%%"\r\n'
+        'del "%%~f0"\r\n'
+        "exit /b 1\r\n"
+        ":MOVED\r\n"
+        'del /F /Q "%%EXE%%.bak"\r\n'
+        'set "_MEIPASS="\r\n'
+        'set "_MEIPASS2="\r\n'
+        'set "PYTHONHOME="\r\n'
+        'set "PYTHONPATH="\r\n'
+        "ping -n 2 127.0.0.1 >NUL\r\n"
+        'start "" "%%EXE%%"\r\n'
+        'del "%%~f0"\r\n'
+    ) % (int(pid), str(new_exe_path), str(current_exe))
+    return bat
+
+
+def launch_updater(
+    new_exe_path: str,
+    exe_path: Optional[str] = None,
+    pid: Optional[int] = None,
+) -> bool:
     """Yangi exe'ni almashtiruvchi .bat ni ishga tushiradi.
 
     Faqat frozen (tayyor exe) rejimda ishlaydi. Muvaffaqiyatda True
     (chaqiruvchi dastur darhol yopilishi kerak).
+
+    exe_path/pid — faqat sinov uchun ustuvor parametrlar (default:
+    joriy exe va joriy PID).
     """
     if not getattr(sys, "frozen", False):
         logger.warning("Dev rejimda updater ishlamaydi")
         return False
-    current_exe = str(Path(sys.executable).resolve())
-    pid = os.getpid()
+    current_exe = str(Path(exe_path or sys.executable).resolve())
+    if pid is None:
+        pid = os.getpid()
     bat_path = Path(tempfile.gettempdir()) / "kurs_manager_update.bat"
-    bat = (
-        "@echo off\r\n"
-        "setlocal\r\n"
-        'set "PID=%s"\r\n'
-        'set "NEW=%s"\r\n'
-        'set "EXE=%s"\r\n'
-        ":WAITLOOP\r\n"
-        "tasklist /FI \"PID eq %%PID%%\" 2>NUL | "
-        "find /I \"%%PID%%\" >NUL\r\n"
-        "if not errorlevel 1 (timeout /t 1 /nobreak >NUL & goto WAITLOOP)\r\n"
-        'if exist "%%EXE%%.bak" del /F /Q "%%EXE%%.bak"\r\n'
-        'copy /Y "%%EXE%%" "%%EXE%%.bak" >NUL\r\n'
-        'move /Y "%%NEW%%" "%%EXE%%" >NUL\r\n'
-        "if errorlevel 1 (\r\n"
-        '  copy /Y "%%EXE%%.bak" "%%EXE%%" >NUL\r\n'
-        '  start "" "%%EXE%%"\r\n'
-        '  del "%%~f0"\r\n'
-        "  exit /b 1\r\n"
-        ")\r\n"
-        'del /F /Q "%%EXE%%.bak"\r\n'
-        'start "" "%%EXE%%"\r\n'
-        'del "%%~f0"\r\n'
-    ) % (pid, new_exe_path, current_exe)
+    bat = _build_update_bat(current_exe, str(new_exe_path), pid)
     try:
         bat_path.write_text(bat, encoding="utf-8")
     except OSError:
         logger.exception("Updater .bat yozilmadi")
         return False
+
+    env = _clean_update_env()
+    ok = False
     try:
         from PySide2.QtCore import QProcess
 
-        ok = QProcess.startDetached("cmd.exe", ["/c", str(bat_path)])
+        # QProcess.startDetached statik metod muhitni qabul qilmaydi —
+        # .bat ni ishga tushirguncha iflos o'zgaruvchilarni vaqtinchalik
+        # olib tashlaymiz (bat ichidagi `set` bilan dublikat: ikkala
+        # qatlam ham mustaqil ishlaydi).
+        stale = [k for k in os.environ if _is_stale_env_key(k)]
+        saved = {k: os.environ[k] for k in stale}
+        for k in stale:
+            os.environ.pop(k, None)
+        try:
+            ok = QProcess.startDetached("cmd.exe", ["/c", str(bat_path)])
+        finally:
+            os.environ.update(saved)
     except Exception:
-        logger.exception("Updater ishga tushmadi")
+        logger.exception("Updater ishga tushmadi (QProcess)")
+        ok = False
+    if not ok:
         try:
             import subprocess
 
             subprocess.Popen(
                 ["cmd.exe", "/c", str(bat_path)],
+                env=env,
                 creationflags=getattr(subprocess, "DETACHED_PROCESS", 0),
             )
             ok = True
