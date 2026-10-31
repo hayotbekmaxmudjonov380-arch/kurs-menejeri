@@ -32,6 +32,13 @@ class PhoneDialog(QDialog):
         self.setWindowTitle("Telefon ulash")
         self.setMinimumSize(560, 540)
         self.setModal(True)
+        # Kichik ekranlarga sig'ishi uchun: balandlik chegarasi
+        try:
+            screen = QApplication.primaryScreen()
+            if screen is not None:
+                self.setMaximumHeight(int(screen.availableGeometry().height() * 0.92))
+        except Exception:  # noqa: BLE001
+            pass
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(22, 20, 22, 18)

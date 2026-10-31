@@ -57,7 +57,7 @@
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav"
-        android:layout_width="302dp"
+        android:layout_width="@dimen/nav_drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@drawable/bg_drawer"

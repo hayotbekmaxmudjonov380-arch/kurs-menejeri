@@ -15,6 +15,21 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
     // ---------- Courses ----------
     suspend fun courses(): List<Course> = db.courses().all().distinctBy { it.name.trim().lowercase() }
 
+    /** Kurs topilsa qaytaradi, topilmasa yaratib qaytaradi (Android'da «Kimyo kursi» uchun). */
+    suspend fun ensureCourse(name: String): Course {
+        val n = name.trim()
+        db.courses().all().firstOrNull { it.name.trim().equals(n, ignoreCase = true) }?.let { return it }
+        val e = Course(uid = newUid(), name = n, price = 0.0, active = true,
+            created_at = nowIso(), updated_at = nowIso())
+        val id = db.courses().upsert(e)
+        val saved = e.copy(id = id)
+        sync.enqueue("courses", e.uid, false, gson.toJson(mapOf(
+            "uid" to e.uid, "name" to e.name, "price" to e.price, "active" to e.active,
+            "created_at" to e.created_at, "updated_at" to e.updated_at
+        )))
+        return saved
+    }
+
     /** Bir xil nomli kurs dublikatlarini birlashtiradi (eski qurilmalardan qolgan holda). */
     suspend fun mergeDuplicateCourses() {
         val all = db.courses().all()
@@ -47,6 +62,23 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
             .filter { it.groupUid == groupUid }
             .map { it.studentUid }.toSet()
         return db.students().all().filter { it.uid !in inGroup }
+    }
+
+    suspend fun allGroupMembers(): List<GroupMember> = db.groupMembers().all()
+
+    suspend fun studentGroupUids(studentUid: String): Set<String> =
+        db.groupMembers().all().filter { it.studentUid == studentUid }.map { it.groupUid }.toSet()
+
+    /** O'quvchining guruhlarini tanlanganlar bilan almashtiradi (desktop set_student_groups bilan bir xil). */
+    suspend fun setStudentGroups(studentUid: String, groupUids: Set<String>) {
+        val current = db.groupMembers().all().filter { it.studentUid == studentUid }
+        for (m in current) {
+            if (m.groupUid !in groupUids) removeGroupMember(m.uid)
+        }
+        val have = current.map { it.groupUid }.toSet()
+        for (g in groupUids) {
+            if (g !in have) addGroupMember(g, studentUid)
+        }
     }
 
     suspend fun addGroup(name: String): Long {
@@ -100,14 +132,15 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
     suspend fun countByStatus(s: String): Int = db.students().countByStatus(s)
 
     suspend fun addStudent(fullName: String, phone: String, courseUid: String, status: String,
-                           fee: Double, note: String, grade: String = "", createdAt: String = nowIso()): Long {
+                           fee: Double, note: String, grade: String = "", createdAt: String = nowIso()): Student {
         val course = courseUid.takeIf { it.isNotBlank() }?.let { db.courses().byUid(it) }
         val e = Student(uid = newUid(), full_name = fullName.trim(), phone = phone.trim(),
             courseId = course?.id, courseUid = course?.uid ?: "", payment_status = status,
             fee = fee, grade = grade, note = note.trim(), created_at = createdAt, updated_at = nowIso())
         val id = db.students().upsert(e)
-        enqueueStudent(e.copy(id = id))
-        return id
+        val saved = e.copy(id = id)
+        enqueueStudent(saved)
+        return saved
     }
 
     suspend fun updateStudent(e: Student) {
@@ -172,6 +205,24 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
     }
 
     suspend fun deleteTestResult(uid: String) = sync.markDeleted("test_results", uid)
+
+    suspend fun updateTestResult(e: TestResult) {
+        val upd = e.copy(updated_at = nowIso())
+        db.testResults().upsert(upd)
+        sync.enqueue("test_results", upd.uid, false, gson.toJson(mapOf(
+            "uid" to upd.uid, "student_id_uid" to upd.studentUid, "topic" to upd.topic,
+            "total_questions" to upd.total_questions, "correct_answers" to upd.correct_answers,
+            "percentage" to upd.percentage, "result_date" to upd.result_date, "note" to upd.note,
+            "updated_at" to upd.updated_at
+        )))
+    }
+
+    /** Bir xil mavzu+sana bo'yicha barcha natijalarni o'chiradi (jadval ustuni). */
+    suspend fun deleteTestResults(topic: String, date: String) {
+        for (t in db.testResults().all().filter { it.topic.trim() == topic && it.result_date.take(10) == date }) {
+            deleteTestResult(t.uid)
+        }
+    }
 
     // ---------- Attendance ----------
     suspend fun attendanceRange(fromD: String, toD: String): List<Attendance> = db.attendance().range(fromD, toD)

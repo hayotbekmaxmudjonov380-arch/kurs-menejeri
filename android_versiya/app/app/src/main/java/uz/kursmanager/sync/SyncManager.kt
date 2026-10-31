@@ -19,8 +19,10 @@ import uz.kursmanager.net.ApiFactory
 import uz.kursmanager.net.ChangeItem
 import uz.kursmanager.net.PairReq
 import uz.kursmanager.net.PushReq
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 private const val PREFS = "kurs_sync"
@@ -28,11 +30,29 @@ private const val K_URL = "server_url"
 private const val K_TOKEN = "token"
 private const val K_DEVICE = "device_id"
 private const val K_LAST = "last_sync_at"
+private const val K_OFFSET = "clock_offset_ms"
 private const val DEF_URL = "http://10.0.2.2:8741"
 
 val TS_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
 
-fun nowIso(): String = LocalDateTime.now().format(TS_FMT)
+/**
+ * Kompyuter (server) soati bilan telefon soati orasidagi farq (milliseniya).
+ *
+ * Sinxron paytida `server_time` dan hisoblanadi va prefs'da saqlanadi.
+ * Shu tufayli barcha yozuvlar **kompyuter vaqti domenida** bo'ladi:
+ * telefon soati noto'g'ri tursa ham, LWW konflikti bir xil soat
+ * bo'yicha hukm qiladi va ma'lumotlar ajralib ketmaydi (divergensiya).
+ */
+@Volatile
+var clockOffsetMs: Long = 0L
+
+/**
+ * Yozuv vaqti (kompyuter domenida).
+ * Telefon soati oldin/ketgan bo'lsa ham — offset tufayli noto'g'ri
+ * vaqt yozilmaydi.
+ */
+fun nowIso(): String =
+    LocalDateTime.now().plus(clockOffsetMs, ChronoUnit.MILLIS).format(TS_FMT)
 fun newUid(): String = UUID.randomUUID().toString().replace("-", "")
 
 fun num(m: Map<String, Any?>, k: String, d: Double = 0.0): Double =
@@ -75,14 +95,40 @@ class SyncManager(ctx: Context) {
         get() = prefs.getString(K_LAST, "") ?: ""
         set(v) = prefs.edit().putString(K_LAST, v).apply()
 
+    init {
+        // Oxirgi sinxronda hisoblangan offset — yozuvlar darhol kompyuter
+        // domenida boshlansin (kutilayotgan holat: soat allaqachon og'gan).
+        clockOffsetMs = prefs.getLong(K_OFFSET, 0L)
+    }
+
     val isPaired: Boolean get() = token.isNotEmpty()
     private fun api() = ApiFactory.create(serverUrl)
+
+    // ---------- Vaqt domeni (server soati) ----------
+
+    private fun parseTs(s: String): LocalDateTime? =
+        runCatching { LocalDateTime.parse(s, TS_FMT) }.getOrNull()
+            ?: runCatching { LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME) }
+                .getOrNull()
+
+    /**
+     * `server_time` dan telefon soatiga offset hisoblaydi va saqlaydi.
+     * Keyingi barcha `nowIso()` yozuvlari shu offset bilan kompyuter
+     * vaqti domeniga ko'chiriladi (K2 kursor + K3 LWW uchun asos).
+     */
+    private fun observeServerTime(serverTime: String) {
+        val srv = parseTs(serverTime) ?: return
+        val off = Duration.between(LocalDateTime.now(), srv).toMillis()
+        clockOffsetMs = off
+        prefs.edit().putLong(K_OFFSET, off).apply()
+    }
 
     // ---------- Juftlash ----------
 
     suspend fun hello(): Result<String> = runCatching {
         val h = api().hello()
         if (h.app != "KursManager") throw IllegalStateException("Bu KursManager serveri emas")
+        observeServerTime(h.serverTime)
         h.version
     }
 
@@ -107,6 +153,9 @@ class SyncManager(ctx: Context) {
         var pulled = 0
         // 1) pastga: server o'zgarishlarini olamiz
         val resp = api().changes(token, lastSyncAt, deviceId)
+        // Kursor hisoblashdan oldin server soatini "o'rganamiz": undan
+        // keyingi yozuvlar (push paytidagi) ham shu domen bo'ladi.
+        observeServerTime(resp.serverTime)
         for (t in resp.deleted) applyTomb(
             t["table"]?.toString() ?: "", t["uid"]?.toString() ?: ""
         )
@@ -128,15 +177,30 @@ class SyncManager(ctx: Context) {
                 mapOf("table" to it.tableName, "uid" to it.uid, "deleted_at" to nowIso())
             }
             val pr = api().push(token, PushReq(deviceId, items, delItems))
+            observeServerTime(pr.serverTime)
             pushed = pr.applied
             conflicts = pr.conflicts
-            // skipped == 0 bo'lsagina navbat tozalanadi, aks holda
-            // keyingi sinxronga qoladi (ma'lumot yo'qolmaydi)
-            if (pr.skipped == 0) {
+            // Server "pending" ro'yxatini qaytarsa — faqat ular outbox'da
+            // qoladi (ota yozuv keyin keladi), qolganlari o'chiriladi.
+            // Eski server (pending yo'q) uchun — skipped>0 bo'lsa hammasi qoladi.
+            val pend = pr.pending
+            if (pend != null) {
+                val keep = pend.mapNotNull { p ->
+                    val t = p.table
+                    val u = p.uid
+                    if (t == null || u == null) null else t + " " + u
+                }.toSet()
+                for (o in outbox) {
+                    if ((o.tableName + " " + o.uid) !in keep) db.outbox().delete(o.id)
+                }
+            } else if (pr.skipped == 0) {
                 for (o in outbox) db.outbox().delete(o.id)
             }
         }
-        lastSyncAt = nowIso()
+        // Kursor: doim SERVER (kompyuter) soati, telefon soati emas.
+        // Telefon soati oldin ketgan bo'lsa, kompyuter yozgan yangiliklar
+        // tushib qolmasdi (K2); endi `since` har doim server domenida.
+        lastSyncAt = resp.serverTime.ifEmpty { nowIso() }
         SyncResult(pulled, pushed, conflicts)
     }
 

@@ -9,19 +9,22 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import uz.kursmanager.R
 
 fun statusBadge(ctx: Context, text: String, colorHex: String): TextView {
+    val c = Color.parseColor(colorHex)
+    val d = ctx.resources.displayMetrics.density
+    val fill = (c and 0x00FFFFFF) or (0x2E shl 24)          // ~18% shaffof fon
+    val strokeCol = (c and 0x00FFFFFF) or (0x99 shl 24)      // ~60% ramka
     return TextView(ctx).apply {
         this.text = text
-        setTextColor(Color.parseColor(colorHex))
+        setTextColor(c)
         setTypeface(typeface, Typeface.BOLD)
-        textSize = 12f
+        textSize = 11.5f
         gravity = Gravity.CENTER
-        val pad = (10 * resources.displayMetrics.density).toInt()
-        setPadding(pad, (5 * resources.displayMetrics.density).toInt(), pad, (5 * resources.displayMetrics.density).toInt())
+        setPadding((10 * d).toInt(), (4 * d).toInt(), (10 * d).toInt(), (4 * d).toInt())
         background = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-            cornerRadius = 24f
-            setStroke(2, Color.parseColor(colorHex))
-            alpha = 255
+            cornerRadius = 20f * d
+            setColor(fill)
+            setStroke((1f * d).toInt().coerceAtLeast(1), strokeCol)
         }
     }
 }

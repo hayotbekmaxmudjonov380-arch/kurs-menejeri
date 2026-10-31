@@ -414,13 +414,22 @@ def last_sync_at() -> str:
 
 def apply_changes(
     changes: list[dict[str, Any]], deleted: list[dict[str, Any]] | None = None
-) -> dict[str, int]:
+) -> dict[str, Any]:
     """Telefondan kelgan o'zgarishlarni qo'llaydi (merge).
 
-    Qaytaradi: {"applied": n, "skipped": n, "deleted": n, "conflicts": n}
+    Qaytaradi: {"applied": n, "skipped": n, "deleted": n, "conflicts": n,
+                "pending": [{"table": ..., "uid": ...}, ...]}
+
+    `pending` — shu syncda qo'llanmagan qatorlar (ota yozuv hali kelmagan).
+    Telefonda ular outbox'da qoladi; qolganlari (skip/tombstone/konflikt)
+    outbox'dan o'chiriladi — aks holda navbat har safar o'sib borardi
+    va bir xil yozuvlar takroran yuborilardi.
     """
     models = _models()
-    result = {"applied": 0, "skipped": 0, "deleted": 0, "conflicts": 0}
+    result: dict[str, Any] = {
+        "applied": 0, "skipped": 0, "deleted": 0, "conflicts": 0,
+        "pending": [],
+    }
     if not changes and not deleted:
         return result
 
@@ -440,9 +449,24 @@ def apply_changes(
                 still.append(item)
         pending = still
 
-    # Hali ham chiqmagan qatorlar — keyingi sinxronga qoldiramiz (yo'qotilmaydi)
+    # Hali ham qolgan qatorlar — telefonga "pending" sifatida qaytaramiz,
+    # shunda telefon ularni outbox'da saqlab, keyingi syncda qayta yuboradi.
     if pending:
-        logger.info("apply_changes: %d qator kutmoqda (ota yozuv topilmadi)", len(pending))
+        logger.info(
+            "apply_changes: %d qator kutmoqda (ota yozuv topilmadi)", len(pending)
+        )
+        seen: set[tuple[str, str]] = set()
+        for item in pending:
+            table = str(item.get("table") or "")
+            row = item.get("row") if isinstance(item.get("row"), dict) else {}
+            uid = str((row or {}).get("uid") or item.get("uid") or "")
+            if not table or not uid:
+                continue  # kalitsiz yaroqsiz yozuv — pendingda ushlab turmaymiz
+            key = (table, uid)
+            if key in seen:
+                continue
+            seen.add(key)
+            result["pending"].append({"table": table, "uid": uid})
     return result
 
 

@@ -2,27 +2,27 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
     android:background="@drawable/bg_card"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="12dp"
-    android:layout_marginBottom="8dp">
+    android:padding="14dp">
 
     <TextView
         android:id="@+id/avatar"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:background="@drawable/bg_avatar"
         android:gravity="center"
         android:text="?"
-        android:textColor="@color/avatar_fg"
-        android:textSize="14sp"
+        android:textColor="@color/primary_light"
+        android:textSize="14.5sp"
         android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="13dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -30,19 +30,25 @@
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="-0.01"
+            android:maxLines="1"
             android:text="—"
             android:textColor="@android:color/white"
-            android:textSize="15sp"
+            android:textSize="15.5sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/sub"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:text=""
             android:textColor="@color/text_dim"
-            android:textSize="12sp" />
+            android:textSize="12.5sp" />
     </LinearLayout>
 
     <LinearLayout
@@ -54,9 +60,12 @@
 
     <ImageButton
         android:id="@+id/btnMore"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:background="@drawable/bg_more"
         android:contentDescription="Amallar"
-        android:src="@drawable/ic_more" />
+        android:padding="9dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_more"
+        android:tint="@color/text_dim" />
 </LinearLayout>

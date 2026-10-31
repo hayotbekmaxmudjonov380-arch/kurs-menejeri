@@ -156,11 +156,22 @@ class MainActivity : AppCompatActivity() {
             .setTitle("🔵 Yangilanish mavjud!")
             .setMessage("Versiya: ${info.version}\n\n${info.notes}\n\nHozir yuklab o'rnatilsinmi?")
             .setPositiveButton("Ha, yangilash") { _, _ ->
+                val progressDialog = android.app.ProgressDialog(this@MainActivity).apply {
+                    setTitle("Yangilanish yuklanmoqda")
+                    setMessage("Iltimos, kuting... 0%")
+                    setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL)
+                    max = 100
+                    setCancelable(false)
+                    show()
+                }
                 lifecycleScope.launch {
-                    Toast.makeText(this@MainActivity, "Yuklanmoqda...", Toast.LENGTH_SHORT).show()
                     val ok = UpdateChecker.downloadAndInstall(this@MainActivity, info) { progress ->
-                        // Progress callback
+                        progressDialog.progress = progress
+                        progressDialog.setMessage("Yuklanmoqda: $progress%")
                     }
+                    try {
+                        progressDialog.dismiss()
+                    } catch (_: Exception) {}
                     if (!ok) {
                         Toast.makeText(this@MainActivity, "Yuklab bo'lmadi. Internetni tekshiring.", Toast.LENGTH_LONG).show()
                     }
@@ -170,7 +181,15 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    // Ochilgan sahifa — sinxron muvaffaqiyatidan keyin aynan shu sahifani
+    // yangilash uchun saqlanadi (eski `recreate()` foydalanuvchini bosh
+    // sahifaga tashlab yuborardi).
+    private var currentFragmentClass: Class<out Fragment> = DashboardFragment::class.java
+    private var currentPageTitle: String = "Bosh sahifa"
+
     private fun open(f: Fragment, title: String) {
+        currentFragmentClass = f.javaClass
+        currentPageTitle = title
         supportFragmentManager.beginTransaction()
             .replace(R.id.content, f).commit()
         b.tvTitle.text = title
@@ -197,7 +216,8 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity,
                         "Tayyor: olindi ${it.pulled}, yuborildi ${it.pushed}",
                         Toast.LENGTH_LONG).show()
-                    recreate()
+                    // Ochilgan sahifani yangilash — bosh sahifaga tashlamasdan
+                    reopenCurrentPage()
                 }
                 r.onFailure {
                     Toast.makeText(this@MainActivity,
@@ -207,6 +227,18 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(this@MainActivity, "Xato: ${e.message}", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    /** Ochilgan sahifani yangi instance bilan qayta ochadi (ma'lumotlar
+     * sinxrondan keyin yangilanadi, sahifa o'z joyida qoladi). */
+    private fun reopenCurrentPage() {
+        try {
+            val f = currentFragmentClass.getDeclaredConstructor().newInstance()
+            open(f, currentPageTitle)
+        } catch (e: Exception) {
+            // Agar sahifani qayta ochib bo'lmasa — bosh sahifaga o'tamiz
+            open(DashboardFragment(), "Bosh sahifa")
         }
     }
 

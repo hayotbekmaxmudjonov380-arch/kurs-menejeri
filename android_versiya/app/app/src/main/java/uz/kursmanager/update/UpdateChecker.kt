@@ -13,13 +13,15 @@ import okhttp3.Request
 import org.json.JSONObject
 import uz.kursmanager.BuildConfig
 import java.io.File
+import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
 data class UpdateInfo(
     val version: String,
     val versionCode: Int,
     val url: String,
-    val notes: String
+    val notes: String,
+    val sha256: String = ""
 )
 
 object UpdateChecker {
@@ -49,9 +51,10 @@ object UpdateChecker {
                 val remoteVersion = android.optString("version", "")
                 val url = android.optString("url", "")
                 val notes = android.optString("notes", "")
+                val sha256 = android.optString("sha256", "")
 
                 if (remoteCode > BuildConfig.VERSION_CODE && url.isNotEmpty()) {
-                    UpdateInfo(remoteVersion, remoteCode, url, notes)
+                    UpdateInfo(remoteVersion, remoteCode, url, notes, sha256)
                 } else {
                     null
                 }
@@ -92,6 +95,22 @@ object UpdateChecker {
                         }
                     }
 
+                    // Nayzat (sha256) tekshiruvi — fayl buzilgan bo'lsa o'rnatilmaydi
+                    val actual = sha256Of(apkFile)
+                    if (info.sha256.isNotBlank() &&
+                        !actual.equals(info.sha256.trim(), ignoreCase = true)
+                    ) {
+                        apkFile.delete()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                context,
+                                "Yuklangan fayl buzilgan (nazorat summasi mos emas). Qayta urinib ko'ring.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        return@withContext false
+                    }
+
                     // O'rnatishni boshlash
                     withContext(Dispatchers.Main) {
                         installApk(context, apkFile)
@@ -103,7 +122,37 @@ object UpdateChecker {
             }
         }
 
+    /** Faylning sha256 nazorat summasi (16-lik, katta harflar bilan). */
+    private fun sha256Of(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(8192)
+            var read: Int
+            while (input.read(buffer).also { read = it } != -1) {
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02X".format(it) }
+    }
+
     private fun installApk(context: Context, apkFile: File) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!context.packageManager.canRequestPackageInstalls()) {
+                try {
+                    val settingsIntent = Intent(
+                        android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                        Uri.parse("package:${context.packageName}")
+                    ).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(settingsIntent)
+                    Toast.makeText(context, "Iltimos, ilovaga yangilanishni o'rnatish uchun ruxsat bering, so'ng qayta bosing.", Toast.LENGTH_LONG).show()
+                    return
+                } catch (_: Exception) {
+                }
+            }
+        }
+
         val intent = Intent(Intent.ACTION_VIEW)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 

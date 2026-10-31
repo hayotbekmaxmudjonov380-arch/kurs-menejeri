@@ -1,21 +1,21 @@
 {
   "win10": {
-    "version": "1.3.10",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.2/KursManager.exe",
-    "sha256": "701c17bb995a8d5effce3a3ffab5f4cc245e723c39200902294ae4bad46cdec4",
-    "notes": "Yangiliklar:\n- Menyu yangilandi: gradient sarlavha, logotip, versiya chip'i\n- Tanlangan band pill-shaklda ko'k rangda ko'rinadi\n- «ALOQA» bo'limi qo'shildi\n- Yangilanish mavjud bo'lsa tugma ko'k rangda yonadi\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Ma'lumotlar yangilanishda saqlanadi"
+    "version": "1.3.16",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.3/KursManager.exe",
+    "sha256": "CF82A7EB00F20874F99F81EF122F7082BCFD86005EAD7AB894812F0D8B81046F",
+    "notes": "Yangiliklar:\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Masofaviy yangilanish tugmasi tekshirildi (sha256 nazorati bilan)\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- Telefon holati (server soati) dialogi yaxshilandi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
   },
   "win8": {
-    "version": "1.3.10",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.2/KursManager.exe",
-    "sha256": "701c17bb995a8d5effce3a3ffab5f4cc245e723c39200902294ae4bad46cdec4",
-    "notes": "Yangiliklar:\n- Menyu yangilandi: gradient sarlavha, logotip, versiya chip'i\n- Tanlangan band pill-shaklda ko'k rangda ko'rinadi\n- «ALOQA» bo'limi qo'shildi\n- Yangilanish mavjud bo'lsa tugma ko'k rangda yonadi\n- Windows 8.1 dan 11 gacha barcha tizimlarda ishlaydi\n- Avtomatik sinxronlashish"
+    "version": "1.3.16",
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.3/KursManager.exe",
+    "sha256": "CF82A7EB00F20874F99F81EF122F7082BCFD86005EAD7AB894812F0D8B81046F",
+    "notes": "Yangiliklar:\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Masofaviy yangilanish tugmasi tekshirildi (sha256 nazorati bilan)\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
   },
   "android": {
-    "version": "1.3.12",
-    "versionCode": 143,
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.2/KursManager-v1.3.12.apk",
-    "sha256": "e96233d3ab3becd9c9ec34476fca80ec843bec6ef4001053042a5e15d3f3c1e1",
-    "notes": "Yangiliklar:\n- Drawer menyu qayta chizildi: gradient sarlavha, logotip, versiya chip'i\n- Tanlangan band pill-shaklda, ripple effekti bilan\n- «ALOQA» bo'limi qo'shildi\n- Yangilanish mavjud bo'lsa band ko'k rangda yonadi\n- Guruhlar bo'limi (guruh yaratish, a'zolar)\n- Android 8.0 va undan yuqori versiyalarda ishlaydi\n- QR kod orqali kompyuterga ulash\n- Avtomatik sinxronlashish"
+    "version": "1.3.16",
+    "versionCode": 147,
+    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.3/KursManager-v1.3.16.apk",
+    "sha256": "700899CBBA7F2669931C05F1B3CA52DFDA7E46D3B8E69C7EEA5939689F13D851",
+    "notes": "Yangiliklar:\n- Sinxronlashish tuzatildi: kompyuter soati domenida ishlaydi (kursor va konfliktlar endi to'g'ri)\n- Yangilanish fayli sha256 nazorati bilan tekshiriladi\n- Kichik telefon va planshet ekranlariga moslashdi (yon menyu, test jadvali)\n- Test natijalari jadvali ekranga mos kenglikda ko'rinadi\n- Windows kompyuter (8.0-11) bilan avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
   }
 }

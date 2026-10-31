@@ -176,7 +176,8 @@ def build() -> Path:
 
     # requirements-win8.txt
     (DEST / "requirements-win8.txt").write_text(
-        "PySide2==5.15.2.1\nSQLAlchemy>=2.0,<3\nPyInstaller>=5.0,<7\nreportlab>=3.5,<5\n",
+        "PySide2==5.15.2.1\nSQLAlchemy>=2.0,<3\nPyInstaller>=5.0,<7\n"
+        "reportlab>=3.5,<5\nqrcode>=7.4,<9\npillow>=10.0,<13\n",
         encoding="utf-8",
     )
 

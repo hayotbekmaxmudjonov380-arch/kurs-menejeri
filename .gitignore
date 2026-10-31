@@ -33,3 +33,6 @@ Thumbs.db
 
 # App runtime data
 .write_probe
+
+# PyInstaller build keshi (qayta quriladi)
+build-win8/

@@ -98,7 +98,11 @@ class SettingsPage(QWidget):
 
         layout.addStretch(1)
 
-        version = QLabel("Kurs Manager  v1.0.0")
+        try:
+            from version import VERSION as _app_version
+        except Exception:  # noqa: BLE001
+            _app_version = "0.0.0"
+        version = QLabel(f"Kurs Manager  v{_app_version}")
         version.setObjectName("hintText")
         layout.addWidget(version)
 

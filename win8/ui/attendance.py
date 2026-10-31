@@ -7,6 +7,7 @@ import logging
 from PySide2.QtCore import Qt, Signal
 from PySide2.QtGui import QColor, QFont
 from PySide2.QtWidgets import (
+    QComboBox,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -15,7 +16,7 @@ from PySide2.QtWidgets import (
     QWidget,
 )
 
-from services import attendance_service, course_service, student_service
+from services import attendance_service, course_service, group_service, student_service
 from ui import dialogs
 from ui.theme import GREEN, RED
 from ui.widgets import PageHeader, make_button, make_item, setup_table
@@ -35,6 +36,9 @@ class AttendancePage(QWidget):
         self.dates = []
         self.students: list[dict] = []
         self.matrix: dict = {}
+        self.groups: list[dict] = []
+        self._student_groups: dict[int, set[int]] = {}
+        self.group_filter: int | None = None
         self._build()
 
     def _build(self) -> None:
@@ -46,6 +50,14 @@ class AttendancePage(QWidget):
         header_row.addWidget(
             PageHeader("Davomat", "Haftalik davomat jurnali"), 1
         )
+
+        # Guruh bo'yicha filtr (tanlansa — faqat shu guruh ko'rinadi)
+        self.group_combo = QComboBox()
+        self.group_combo.setObjectName("groupFilter")
+        self.group_combo.setMinimumWidth(190)
+        self.group_combo.currentIndexChanged.connect(self._on_group_filter)
+        header_row.addWidget(self.group_combo)
+
         add_btn = make_button("➕  Yangi o'quvchi")
         add_btn.clicked.connect(self._quick_add)
         prev_btn = make_button("‹ Oldingi", "ghost")
@@ -87,10 +99,91 @@ class AttendancePage(QWidget):
         self.dates = attendance_service.week_dates(self.week_offset)
         self.students, self.matrix, stats = attendance_service.get_matrix(self.dates)
         self.stats = stats
+        self._reload_groups()
+        self._sync_group_combo()
         self.week_label.setText(
             f"Hafta: {self.dates[0].strftime('%d.%m')} — {self.dates[-1].strftime('%d.%m.%Y')}"
         )
         self._populate_table()
+
+    def _reload_groups(self) -> None:
+        """Guruhlar va o'quvchi→guruh xaritasi (bo'limlar uchun)."""
+        try:
+            self.groups = sorted(
+                group_service.list_groups(),
+                key=lambda g: str(g["name"]).lower(),
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("Guruhlarni o'qishda xatolik")
+            self.groups = []
+        self._student_groups = {}
+        for g in self.groups:
+            try:
+                members = group_service.list_members(int(g["id"]))
+            except Exception:  # noqa: BLE001
+                members = []
+            for m in members:
+                sid = m.get("student_id")
+                if sid is None:
+                    continue
+                self._student_groups.setdefault(int(sid), set()).add(int(g["id"]))
+
+    def _sync_group_combo(self) -> None:
+        """Filtr ro'yxatini yangilash (tanlovni saqlagan holda)."""
+        current = self.group_filter
+        self.group_combo.blockSignals(True)
+        self.group_combo.clear()
+        self.group_combo.addItem("Barcha guruhlar", None)
+        for g in self.groups:
+            self.group_combo.addItem(str(g["name"]), int(g["id"]))
+        idx = self.group_combo.findData(current)
+        if idx >= 0:
+            self.group_combo.setCurrentIndex(idx)
+        else:
+            # Tanlangan guruh o'chirilgan — barchasiga qaytamiz
+            self.group_filter = None
+            self.group_combo.setCurrentIndex(0)
+        self.group_combo.blockSignals(False)
+
+    def _on_group_filter(self, index: int) -> None:
+        data = self.group_combo.itemData(index)
+        self.group_filter = int(data) if data is not None else None
+        self._populate_table()
+
+    def _students_in_group(self, group_id: int) -> list[dict]:
+        return [
+            st
+            for st in self.students
+            if group_id in self._student_groups.get(st["id"], set())
+        ]
+
+    def _build_sections(self) -> list[tuple[str | None, list[dict]]]:
+        """Guruhlar bo'yicha bo'limlar; guruhsizlar oxirida."""
+        if not self.groups:
+            return [(None, self.students)]
+        sections: list[tuple[str | None, list[dict]]] = []
+        grouped: set[int] = set()
+        for g in self.groups:
+            members = self._students_in_group(int(g["id"]))
+            if members:
+                sections.append((str(g["name"]), members))
+                grouped.update(st["id"] for st in members)
+        rest = [st for st in self.students if st["id"] not in grouped]
+        if rest:
+            sections.append(("Guruhsiz", rest))
+        return sections
+
+    def _add_section_row(self, table, title: str, count: int) -> None:
+        row = table.rowCount()
+        table.insertRow(row)
+        item = make_item(f"▣  {title}  ({count} o'quvchi)")
+        font = item.font()
+        font.setBold(True)
+        item.setFont(font)
+        item.setData(Qt.UserRole, ("section",))
+        table.setItem(row, 0, item)
+        table.setSpan(row, 0, 1, 9)
+        table.setRowHeight(row, 36)
 
     def _populate_table(self) -> None:
         from datetime import date as _date
@@ -106,21 +199,6 @@ class AttendancePage(QWidget):
         headers.append("Davomat %")
         table.setHorizontalHeaderLabels(headers)
 
-        for st in self.students:
-            row = table.rowCount()
-            table.insertRow(row)
-            table.setItem(row, 0, make_item(st["full_name"]))
-            for col, d in enumerate(self.dates, start=1):
-                val = self.matrix[st["id"]][d.isoformat()]
-                item = self._make_cell(st["id"], d.isoformat(), val)
-                table.setItem(row, col, item)
-            pct = self.stats[st["id"]]["pct"]
-            pct_item = make_item(f"{pct}%", align_right=True)
-            font = pct_item.font()
-            font.setBold(True)
-            pct_item.setFont(font)
-            table.setItem(row, 8, pct_item)
-
         if not self.students:
             table.insertRow(0)
             item = make_item("O'quvchilar yo'q — «➕ Yangi o'quvchi» tugmasini bosing")
@@ -128,6 +206,46 @@ class AttendancePage(QWidget):
             table.setSpan(0, 0, 1, 9)
             table.setItem(0, 0, item)
             table.setRowHeight(0, 80)
+            return
+
+        sections = (
+            self._build_sections()
+            if self.group_filter is None
+            else [(None, self._students_in_group(self.group_filter))]
+        )
+        shown = sum(len(lst) for _, lst in sections)
+        if shown == 0:
+            table.insertRow(0)
+            item = make_item(
+                "Bu guruhda o'quvchi yo'q — «Barcha guruhlar» ni tanlang"
+            )
+            item.setTextAlignment(Qt.AlignCenter)
+            table.setSpan(0, 0, 1, 9)
+            table.setItem(0, 0, item)
+            table.setRowHeight(0, 80)
+            return
+
+        for title, members in sections:
+            if not members:
+                continue
+            if title is not None:
+                self._add_section_row(table, title, len(members))
+            for st in members:
+                row = table.rowCount()
+                table.insertRow(row)
+                name_item = make_item(st["full_name"])
+                name_item.setData(Qt.UserRole, ("student", st["id"]))
+                table.setItem(row, 0, name_item)
+                for col, d in enumerate(self.dates, start=1):
+                    val = self.matrix[st["id"]][d.isoformat()]
+                    item = self._make_cell(st["id"], d.isoformat(), val)
+                    table.setItem(row, col, item)
+                pct = self.stats[st["id"]]["pct"]
+                pct_item = make_item(f"{pct}%", align_right=True)
+                font = pct_item.font()
+                font.setBold(True)
+                pct_item.setFont(font)
+                table.setItem(row, 8, pct_item)
 
     def _make_cell(self, student_id: int, iso: str, val) -> QTableWidgetItem:
         if val is True:
@@ -172,6 +290,27 @@ class AttendancePage(QWidget):
             font.setBold(True)
             pct_item.setFont(font)
             table.setItem(row, 8, pct_item)
+            # O'quvchi bir nechta guruhda bo'lishi mumkin — boshqa
+            # bo'limlaridagi qatorlarini ham yangilash
+            for r in range(table.rowCount()):
+                if r == row:
+                    continue
+                nm = table.item(r, 0)
+                mark = nm.data(Qt.UserRole) if nm else None
+                if not (
+                    isinstance(mark, tuple)
+                    and len(mark) == 2
+                    and mark[0] == "student"
+                    and mark[1] == student_id
+                ):
+                    continue
+                if table.item(r, col) is not None:
+                    table.setItem(r, col, self._make_cell(student_id, iso, nxt))
+                p_item = make_item(f"{result['pct']}%", align_right=True)
+                p_font = p_item.font()
+                p_font.setBold(True)
+                p_item.setFont(p_font)
+                table.setItem(r, 8, p_item)
         except Exception as exc:  # noqa: BLE001
             dialogs.error_from_exception(self, exc)
 

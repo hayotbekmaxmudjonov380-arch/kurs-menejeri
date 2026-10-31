@@ -63,19 +63,28 @@ def _split_path(raw: str) -> tuple[str, dict[str, list[str]]]:
     return parsed.path, parse_qs(parsed.query)
 
 
-def _read_json(handler: BaseHTTPRequestHandler) -> dict:
+def _read_json(handler: BaseHTTPRequestHandler) -> dict | None:
+    """So'rov tanasini o'qiydi.
+
+    `None` — tani mavjud, lekin o'qib bo'lmadi (10MB dan katta yoki JSON xato).
+    Bunda albatta xato qaytarish kerak: jim "muvaffaqiyat" ko'rinishida
+    javob bersak, telefon qatorlar qo'llangan deb o'lib, outbox'ni
+    o'chirib yuboradi — ma'lumot yiqiladi.
+    """
     try:
         length = int(handler.headers.get("Content-Length") or 0)
     except (TypeError, ValueError):
         length = 0
-    if length <= 0 or length > 10 * 1024 * 1024:
+    if length <= 0:
         return {}
+    if length > 10 * 1024 * 1024:
+        return None
     try:
         raw = handler.rfile.read(length)
         data = json.loads(raw.decode("utf-8"))
-        return data if isinstance(data, dict) else {}
-    except (ValueError, UnicodeDecodeError):
-        return {}
+    except (ValueError, UnicodeDecodeError, OSError):
+        return None
+    return data if isinstance(data, dict) else None
 
 
 class SyncHandler(BaseHTTPRequestHandler):
@@ -117,10 +126,15 @@ class SyncHandler(BaseHTTPRequestHandler):
             from services import sync_service
 
             since = query.get("since", [""])[0]
+            # `server_time` kursor sifatida ishlatiladi (telefon `since`
+            # deb shuni beradi) — shuning uchun collect dan OLDIN olinadi:
+            # collect paytida yozilgan qator ham keyingi safar so'raladi,
+            # hech narsa tushib qolmaydi.
+            stamp = _now()
             self._send({
+                "server_time": stamp,
                 "changes": sync_service.collect_changes(since),
                 "deleted": sync_service.tomb_list(since),
-                "server_time": _now(),
             })
         else:
             self._send({"error": "topilmadi"}, 404)
@@ -130,7 +144,7 @@ class SyncHandler(BaseHTTPRequestHandler):
         if path == "/sync/pair":
             from services import pairing_service as _pair
 
-            data = _read_json(self)
+            data = _read_json(self) or {}
             token = _pair.confirm_pairing(
                 str(data.get("code", "")),
                 str(data.get("device_id", "")),
@@ -147,6 +161,18 @@ class SyncHandler(BaseHTTPRequestHandler):
             from services import sync_service
 
             data = _read_json(self)
+            if data is None:
+                # Tani o'qib bo'lmadi (10MB+ yoki noto'g'ri JSON).
+                # "Muvaffaqiyat" ko'rinishida javob bersak — telefon
+                # outbox'ni o'chirib, qo'llanmagan qatorlarni yo'qotib yuboradi.
+                # 400 (yoki ulkan tani o'qishsiz uzilish) -> telefon buni
+                # xato deb ko'radi va outbox'ni saqlaydi.
+                self.close_connection = True
+                self._send(
+                    {"error": "So'rov tanasi o'qib bo'lmadi (hajm yoki JSON xato)"},
+                    400,
+                )
+                return
             changes = data.get("changes")
             deleted = data.get("deleted")
             stats = sync_service.apply_changes(
@@ -160,6 +186,8 @@ class SyncHandler(BaseHTTPRequestHandler):
                 "skipped": stats["skipped"],
                 "deleted": stats["deleted"],
                 "conflicts": stats["conflicts"],
+                # Qo'llanmagan qatorlar: telefonda outbox'da qoladi
+                "pending": stats["pending"],
                 "server_time": _now(),
                 "last_change_at": sync_service.last_change_at(),
             })

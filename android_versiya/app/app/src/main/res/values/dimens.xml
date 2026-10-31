@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Yon menyu kengligi: telefon uchun Material standarti (kichik ekranda
+         kontent ko'rinib tursin) -->
+    <dimen name="nav_drawer_width">280dp</dimen>
+</resources>

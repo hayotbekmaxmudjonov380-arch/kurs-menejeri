@@ -39,7 +39,8 @@ data class ChangeItem(
 
 data class ChangesResp(
     val changes: List<ChangeItem> = emptyList(),
-    val deleted: List<Map<String, Any?>> = emptyList()
+    val deleted: List<Map<String, Any?>> = emptyList(),
+    @SerializedName("server_time") val serverTime: String = ""
 )
 
 data class PushReq(
@@ -48,7 +49,16 @@ data class PushReq(
     val deleted: List<Map<String, String>> = emptyList()
 )
 
-data class PushResp(val applied: Int = 0, val skipped: Int = 0, val conflicts: Int = 0, val deleted: Int = 0)
+data class PendingRef(val table: String? = null, val uid: String? = null)
+
+data class PushResp(
+    val applied: Int = 0,
+    val skipped: Int = 0,
+    val conflicts: Int = 0,
+    val deleted: Int = 0,
+    @SerializedName("pending") val pending: List<PendingRef>? = null,
+    @SerializedName("server_time") val serverTime: String = ""
+)
 
 // ---- API ----
 

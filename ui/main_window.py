@@ -66,8 +66,15 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Kurs Manager")
         self.setWindowIcon(make_app_icon())
-        self.setMinimumSize(1180, 720)
-        self.resize(1320, 800)
+        # Kichik ekranlarda (1366x768 noutbuklar) ham sig'ishi uchun
+        self.setMinimumSize(1024, 600)
+        try:
+            from PySide6.QtWidgets import QApplication as _App
+
+            ag = _App.primaryScreen().availableGeometry()
+            self.resize(min(1320, ag.width() - 30), min(800, ag.height() - 30))
+        except Exception:  # noqa: BLE001
+            self.resize(1320, 800)
 
         self.pages: dict[str, QWidget] = {}
         self.nav_buttons: dict[str, QPushButton] = {}

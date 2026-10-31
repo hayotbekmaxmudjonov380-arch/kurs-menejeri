@@ -82,6 +82,17 @@ def main() -> int:
     except Exception:  # noqa: BLE001
         logger.exception("Mavzuni yuklashda xatolik")
 
+    # Yuqori DPI masshtab (Windows'da 125%/150%): Qt6'da PassThrough rounding,
+    # Qt5'da (win8 nusxa) AA atributlari — QApplication'dan OLDIN o'rnatiladi.
+    try:
+        from PySide2.QtCore import Qt as _QtAttr
+
+        _policy = _QtAttr.HighDpiScaleFactorRoundingPolicy.PassThrough
+        QApplication.setHighDpiScaleFactorRoundingPolicy(_policy)
+    except Exception:  # noqa: BLE001 — Qt5: eski atributlar bilan
+        QApplication.setAttribute(_QtAttr.AA_EnableHighDpiScaling, True)
+        QApplication.setAttribute(_QtAttr.AA_UseHighDpiPixmaps, True)
+
     app = QApplication(sys.argv)
     app.setApplicationName("Kurs Manager")
     app.setStyle("Fusion")
