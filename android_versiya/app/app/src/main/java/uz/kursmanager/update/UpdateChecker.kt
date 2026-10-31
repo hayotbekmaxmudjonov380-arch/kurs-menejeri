@@ -21,7 +21,8 @@ data class UpdateInfo(
     val versionCode: Int,
     val url: String,
     val notes: String,
-    val sha256: String = ""
+    val sha256: String = "",
+    val minVersion: String = ""
 )
 
 object UpdateChecker {
@@ -52,9 +53,10 @@ object UpdateChecker {
                 val url = android.optString("url", "")
                 val notes = android.optString("notes", "")
                 val sha256 = android.optString("sha256", "")
+                val minVersion = android.optString("min_version", "")
 
                 if (remoteCode > BuildConfig.VERSION_CODE && url.isNotEmpty()) {
-                    UpdateInfo(remoteVersion, remoteCode, url, notes, sha256)
+                    UpdateInfo(remoteVersion, remoteCode, url, notes, sha256, minVersion)
                 } else {
                     null
                 }
@@ -62,6 +64,25 @@ object UpdateChecker {
         } catch (_: Exception) {
             null
         }
+    }
+
+    /** Majburiy yangilanish: min_version joriy versiyadan baland bo'lsa. */
+    fun isForced(info: UpdateInfo?): Boolean {
+        val min = info?.minVersion?.trim().orEmpty()
+        if (min.isEmpty()) return false
+        return compareVersions(BuildConfig.VERSION_NAME, min) < 0
+    }
+
+    /** "1.3.17" kabi versiyalarni solishtiradi: -1 (a<b), 0, +1 (a>b). */
+    private fun compareVersions(a: String, b: String): Int {
+        val pa = a.split('.').map { it.filter(Char::isDigit).toIntOrNull() ?: 0 }
+        val pb = b.split('.').map { it.filter(Char::isDigit).toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(pa.size, pb.size)) {
+            val x = pa.getOrElse(i) { 0 }
+            val y = pb.getOrElse(i) { 0 }
+            if (x != y) return if (x < y) -1 else 1
+        }
+        return 0
     }
 
     suspend fun downloadAndInstall(context: Context, info: UpdateInfo, onProgress: (Int) -> Unit): Boolean =

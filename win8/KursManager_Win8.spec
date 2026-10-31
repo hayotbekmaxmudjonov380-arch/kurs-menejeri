@@ -10,8 +10,8 @@ project_root = Path(SPECPATH)
 icon_path = str(project_root / "assets" / "icon.ico")
 
 # --- CRT + UCRT (Windows 8.0-11 uchun zero-install) ---
-py_dir = Path(sys.executable).parent  # D:\Python39
-sys32 = Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32"
+py_dir = Path(sys.executable).parent
+sys32 = Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32"
 
 crt_binaries = [
     (str(py_dir / "vcruntime140.dll"), "."),
@@ -23,8 +23,7 @@ crt_binaries = [
     (str(sys32 / "msvcp140_codecvt_ids.dll"), "."),
 ]
 
-# UCRT: api-ms-win-*.dll + ucrtbase.dll
-_ucrt_dir = r"C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64"
+_ucrt_dir = "C:/Program Files (x86)/Windows Kits/10/Redist/ucrt/DLLs/x64"
 if os.path.isdir(_ucrt_dir):
     for _dll in glob.glob(os.path.join(_ucrt_dir, "*.dll")):
         crt_binaries.append((_dll, "."))

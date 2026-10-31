@@ -104,7 +104,13 @@ class MainActivity : AppCompatActivity() {
             cachedUpdateInfo = info
             // Indikator: yangilanish bor bo'lsa ko'k yonadi, aks holda o'chiq (default)
             applyUpdateIndicator(info != null)
-            if (info != null) showUpdateDialog(info)
+            if (info == null) return@launch
+            if (UpdateChecker.isForced(info)) {
+                // Majburiy yangilanish — dastur faqat yangilangandan keyin ochiladi
+                showForcedUpdateDialog(info)
+            } else {
+                showUpdateDialog(info)
+            }
         }
     }
 
@@ -179,6 +185,58 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Keyinroq", null)
             .show()
+    }
+
+    private var forcedDialog: AlertDialog? = null
+
+    /** Majburiy yangilanish: yopib bo'lmaydigan oyna — faqat Yangilash/Chiqish. */
+    private fun showForcedUpdateDialog(info: UpdateInfo) {
+        if (forcedDialog?.isShowing == true) return
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("⚠️ Yangilanish shart")
+            .setMessage(
+                "Ilovaning eski versiyasi ishlamaydi.\n" +
+                    "Joriy: v${BuildConfig.VERSION_NAME}\n" +
+                    "Yangi: v${info.version}\n\n" +
+                    "${info.notes}"
+            )
+            .setCancelable(false)
+            .setPositiveButton("📥  Yangilash", null)
+            .setNegativeButton("❌  Chiqish") { _, _ ->
+                finishAffinity()
+            }
+            .create()
+        dialog.setOnShowListener {
+            val btn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            btn.setOnClickListener {
+                btn.isEnabled = false
+                lifecycleScope.launch {
+                    val ok = UpdateChecker.downloadAndInstall(
+                        this@MainActivity, info
+                    ) { progress ->
+                        btn.text = "Yuklanmoqda... $progress%"
+                    }
+                    if (ok) {
+                        // O'rnatish oynasi ochildi — foydalanuvchi tasdiqlaydi
+                        Toast.makeText(
+                            this@MainActivity,
+                            "O'rnatish oynasi ochildi — «O'rnat» ni bosing.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            this@MainActivity,
+                            "Yuklab bo'lmadi. Internetni tekshiring va qayta bosing.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    btn.isEnabled = true
+                    btn.text = "📥  Yangilash"
+                }
+            }
+        }
+        dialog.show()
+        forcedDialog = dialog
     }
 
     // Ochilgan sahifa — sinxron muvaffaqiyatidan keyin aynan shu sahifani

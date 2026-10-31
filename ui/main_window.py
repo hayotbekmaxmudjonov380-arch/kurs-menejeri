@@ -395,6 +395,18 @@ class MainWindow(QMainWindow):
         except Exception:  # noqa: BLE001
             logger.exception("Yangilanish push-xabari yuborilmadi")
 
+        # Majburiy yangilanish — updates.json'da min_version baland bo'lsa
+        # oyna yopilib qoladi: faqat «Yangilash» yoki «Chiqish»
+        try:
+            from services import update_service
+
+            if update_service.is_forced(info):
+                QTimer.singleShot(
+                    0, lambda: self._show_forced_update_dialog(info)
+                )
+        except Exception:  # noqa: BLE001
+            logger.exception("Majburiy yangilanish tekshiruvida xatolik")
+
     def _start_sync_server(self) -> None:
         from services import sync_server
 
@@ -517,6 +529,138 @@ class MainWindow(QMainWindow):
                 "Avtomatik almashtirib bo'lmadi.\n"
                 "Yuklangan fayl:\n%s" % target,
             )
+            return
+        QApplication.instance().quit()
+
+    # ---------- Majburiy yangilanish ----------
+    def _show_forced_update_dialog(self, info: dict) -> None:
+        """Majburiy yangilanish oynasi: yopib bo'lmaydi, faqat Yangilash/Chiqish."""
+        existing = getattr(self, "_forced_dialog", None)
+        if existing is not None:
+            try:
+                if existing.isVisible():
+                    return
+            except RuntimeError:
+                pass
+
+        from PySide6.QtWidgets import (
+            QDialog,
+            QLabel,
+            QPushButton,
+            QVBoxLayout,
+        )
+
+        from services import update_service
+
+        dlg = QDialog(self)
+        dlg.setObjectName("forcedUpdateDialog")
+        dlg.setWindowTitle("Yangilanish shart")
+        dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
+        # ✕ tugmasi olib tashlanadi — faqat quyidagi tugmalar orqali yopiladi
+        dlg.setWindowFlag(Qt.WindowType.WindowCloseButtonHint, False)
+        dlg.setMinimumWidth(440)
+
+        layout = QVBoxLayout(dlg)
+        layout.setSpacing(12)
+
+        title = QLabel("🔄  Dastur yangilanishi shart")
+        font = title.font()
+        font.setBold(True)
+        font.setPointSize(font.pointSize() + 2)
+        title.setFont(font)
+        layout.addWidget(title)
+
+        ver = QLabel(
+            "Joriy versiya: v%s\n"
+            "Yangi versiya: v%s\n\n"
+            "%s"
+            % (
+                update_service.get_current_version(),
+                info.get("version", ""),
+                (info.get("notes") or "").strip(),
+            )
+        )
+        ver.setWordWrap(True)
+        layout.addWidget(ver)
+
+        status = QLabel("")
+        status.setWordWrap(True)
+        status.setObjectName("forcedStatus")
+        layout.addWidget(status)
+
+        btn_update = QPushButton("📥  Yangilash")
+        btn_update.clicked.connect(lambda: self._do_forced_update(dlg, info))
+        layout.addWidget(btn_update)
+
+        btn_exit = QPushButton("❌  Chiqish")
+        btn_exit.clicked.connect(QApplication.instance().quit)
+        layout.addWidget(btn_exit)
+
+        self._forced_dialog = dlg
+        dlg.show()
+
+    def _do_forced_update(self, dlg, info: dict) -> None:
+        """Yuklab, nazorat summasini tekshirib, almashtiradi — bekor qilishsiz."""
+        import os
+        import tempfile
+
+        from PySide6.QtWidgets import QLabel, QPushButton
+
+        from services import update_service
+
+        status = dlg.findChild(QLabel, "forcedStatus")
+        btns = dlg.findChildren(QPushButton)
+
+        def _set_status(text: str) -> None:
+            if status is not None:
+                status.setText(text)
+            QApplication.processEvents()
+
+        for b in btns:
+            b.setEnabled(False)
+        target = os.path.join(
+            tempfile.gettempdir(),
+            "KursManager_update_%s.exe" % info.get("version", "new"),
+        )
+        try:
+
+            def _cb(downloaded: int, total: int) -> bool:
+                if total > 0:
+                    _set_status(
+                        "Yuklanmoqda... %d%%"
+                        % int(downloaded * 100 / total)
+                    )
+                return True
+
+            update_service.download_update(info["url"], target, _cb)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Majburiy yangilashda yuklash xatosi")
+            _set_status(
+                "Yuklab bo'lmadi: %s\n"
+                "Internetni tekshiring va «Yangilash» ni qayta bosing." % exc
+            )
+            for b in btns:
+                b.setEnabled(True)
+            return
+        _set_status("Nazorat summasi tekshirilmoqda...")
+        if not update_service.verify_sha256(target, info.get("sha256", "")):
+            _set_status(
+                "Yuklangan fayl buzilgan.\n«Yangilash» tugmasini qayta bosing."
+            )
+            try:
+                os.remove(target)
+            except OSError:
+                pass
+            for b in btns:
+                b.setEnabled(True)
+            return
+        _set_status("Almashtirilmoqda — dastur qayta ishga tushadi...")
+        if not update_service.launch_updater(target):
+            _set_status(
+                "Avtomatik almashtirib bo'lmadi.\nYuklangan fayl: %s" % target
+            )
+            for b in btns:
+                b.setEnabled(True)
             return
         QApplication.instance().quit()
 

@@ -94,6 +94,26 @@ def is_newer(remote: str, current: str) -> bool:
         return False
 
 
+def is_forced(info: Optional[dict]) -> bool:
+    """Majburiy yangilanish: updates.json dagi min_version joriy versiyadan baland bo'lsa.
+
+    min_version faqat uni tushunadigan versiyalarda (1.3.17+) ishlaydi —
+    undan avvalgi eski versiyalar bu maydonni e'tiborsiz qoldiradi va
+    odatdagi «yangilanish mavjud» tartibida davom etadi.
+    Internet bo'lmasa tekshiruv umuman ishlamaydi — dastur LAN'da
+    odatdagidek ochilaveradi (majburiylik faqat serverga ulanganda).
+    """
+    if not info:
+        return False
+    min_v = str(info.get("min_version", "")).strip()
+    if not min_v:
+        return False
+    try:
+        return parse_version(get_current_version()) < parse_version(min_v)
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _urlopen(req: urllib.request.Request, timeout: int):
     import ssl
 
@@ -138,6 +158,7 @@ def check_for_updates() -> Optional[dict]:
             "url": url,
             "sha256": str(info.get("sha256", "")),
             "notes": str(info.get("notes", "")),
+            "min_version": str(info.get("min_version", "")),
         }
     except Exception:
         logger.exception("Yangilanishni tekshirishda kutilmagan xatolik")

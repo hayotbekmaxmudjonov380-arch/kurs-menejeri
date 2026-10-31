@@ -185,15 +185,37 @@ def build() -> Path:
     spec = f'''# -*- mode: python ; coding: utf-8 -*-
 """PyInstaller spec — Windows 8.1 kloni (Qt5)."""
 
+import glob
+import os
+import sys
 from pathlib import Path
 
 project_root = Path(SPECPATH)
 icon_path = str(project_root / "assets" / "icon.ico")
 
+# --- CRT + UCRT (Windows 8.0-11 uchun zero-install) ---
+py_dir = Path(sys.executable).parent
+sys32 = Path(os.environ.get("SystemRoot", "C:/Windows")) / "System32"
+
+crt_binaries = [
+    (str(py_dir / "vcruntime140.dll"), "."),
+    (str(py_dir / "vcruntime140_1.dll"), "."),
+    (str(sys32 / "msvcp140.dll"), "."),
+    (str(sys32 / "msvcp140_1.dll"), "."),
+    (str(sys32 / "msvcp140_2.dll"), "."),
+    (str(sys32 / "msvcp140_atomic_wait.dll"), "."),
+    (str(sys32 / "msvcp140_codecvt_ids.dll"), "."),
+]
+
+_ucrt_dir = "C:/Program Files (x86)/Windows Kits/10/Redist/ucrt/DLLs/x64"
+if os.path.isdir(_ucrt_dir):
+    for _dll in glob.glob(os.path.join(_ucrt_dir, "*.dll")):
+        crt_binaries.append((_dll, "."))
+
 a = Analysis(
     ["main.py"],
     pathex=[str(project_root)],
-    binaries=[],
+    binaries=crt_binaries,
     datas=[(str(project_root / "image" / "logotip.png"), "image")],
     hiddenimports=[
         "sqlalchemy.dialects.sqlite",
