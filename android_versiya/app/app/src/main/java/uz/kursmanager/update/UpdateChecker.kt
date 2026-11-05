@@ -45,7 +45,8 @@ object UpdateChecker {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
-                val json = JSONObject(body)
+                // UTF-8 BOM JSONTokener uchun oqilmagan belgi — olib tashlaymiz
+                val json = JSONObject(body.removePrefix("\uFEFF"))
                 val android = json.optJSONObject("android") ?: return@withContext null
 
                 val remoteCode = android.optInt("versionCode", 0)

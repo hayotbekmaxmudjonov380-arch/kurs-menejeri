@@ -130,7 +130,8 @@ def fetch_updates() -> dict:
     url = update_url()
     req = urllib.request.Request(url, headers={"User-Agent": "KursManager-Updater"})
     with _urlopen(req, timeout=CHECK_TIMEOUT) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+        # utf-8-sig: fayl UTF-8 BOM bilan boshlansa ham ishlaydi
+        return json.loads(resp.read().decode("utf-8-sig"))
 
 
 def check_for_updates() -> Optional[dict]:

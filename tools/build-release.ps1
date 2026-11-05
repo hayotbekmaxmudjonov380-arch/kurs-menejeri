@@ -213,7 +213,10 @@ if (-not $SkipApk) {
     $Updates.android.notes = $Notes
 }
 
-$Updates | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $UpdatesJson -Encoding UTF8
+# PS 5.1 da "Set-Content -Encoding UTF8" BOM yozadi; BOM JSON parserlarda
+# (Python json.loads) xato beradi. Shuning uchun BOM'siz UTF8 bilan yozamiz.
+$JsonText = $Updates | ConvertTo-Json -Depth 10
+[System.IO.File]::WriteAllText($UpdatesJson, $JsonText, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "updates.json yangilandi." -ForegroundColor Green
 
 # --- 9. Git commit + push ---
