@@ -1,7 +1,12 @@
-"""Dastur versiyasi (bitta manba вЂ” ikkala exe ham shundan oladi)."""
-
-VERSION = "1.3.18"
+﻿"""Dastur versiyasi (bitta manba вЂ” ikkala exe ham shundan oladi)."""
+VERSION = "1.4.6"
 
 # Build varianti: "win10" (Qt6) yoki "win8" (Qt5, universal 8.1-11).
 # Port skripti win8 nusxada buni avtomatik "win8" ga almashtiradi.
 VARIANT = "win10"
+
+
+
+
+
+

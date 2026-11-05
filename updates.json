@@ -1,24 +1,24 @@
-{
-  "win10": {
-    "version": "1.3.18",
-    "min_version": "1.3.17",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.5/KursManager.exe",
-    "sha256": "64AB594F0398F5F4BB548427E3A1FEBA20EED20FBBE80D187FCD35F6DAEB100A",
-    "notes": "Yangiliklar:\n- ⚠️ MUHIM Tuzatish: avtomatik yangilanishdagi «Failed to load Python DLL» xatosi yo'q qilindi (yangilashda dastur yopilib qolmasligi uchun)\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Telefon bilan sinxronlashish tugmasi joriy sahifada qoladi (Android)\n- Masofaviy yangilanish tugmasi sha256 nazorati bilan ishlaydi\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
-  },
-  "win8": {
-    "version": "1.3.18",
-    "min_version": "1.3.17",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.5/KursManager.exe",
-    "sha256": "64AB594F0398F5F4BB548427E3A1FEBA20EED20FBBE80D187FCD35F6DAEB100A",
-    "notes": "Yangiliklar:\n- ⚠️ MUHIM Tuzatish: avtomatik yangilanishdagi «Failed to load Python DLL» xatosi yo'q qilindi (yangilashda dastur yopilib qolmasligi uchun)\n- Windows 8.0/8.1/10/11 uchun BIRTA universal dastur (barcha kutubxonalar ichida — qo'shimcha o'rnatish shart emas)\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: endi kompyuter soati asosida ishlaydi (soatlar farqida ma'lumot tushib qolmaydi)\n- Masofaviy yangilanish tugmasi sha256 nazorati bilan ishlaydi\n- Kichik ekranlar (1366x768) va yuqori DPI (125%/150%) ga moslashdi\n- QR kod orqali telefon ulash\n- Avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
-  },
-  "android": {
-    "version": "1.3.17",
-    "versionCode": 148,
-    "min_version": "1.3.17",
-    "url": "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.4/KursManager-v1.3.17.apk",
-    "sha256": "0C5C051C88BE9B7C4E7FA697F69E3130073706BC09DF76F777099167FD85FC9D",
-    "notes": "Yangiliklar:\n- Majburiy yangilanish tizimi qo'shildi (min_version)\n- Sinxronlashish tuzatildi: kompyuter soati domenida ishlaydi (kursor va konfliktlar endi to'g'ri)\n- Yangilanish fayli sha256 nazorati bilan tekshiriladi\n- Kichik telefon va planshet ekranlariga moslashdi (yon menyu, test jadvali)\n- Windows kompyuter (8.0-11) bilan avtomatik sinxronlashish\n- Davomat guruhlar bo'yicha ajratildi (filtr + bo'limlar)"
-  }
+﻿{
+    "win10":  {
+                  "version":  "1.4.6",
+                  "min_version":  "1.4.6",
+                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.6/KursManager.exe",
+                  "sha256":  "5e34f53d71b6dd8cea0a30bf73147506844446f47fbad570293c7e49362f5ea4",
+                  "notes":  "Hisob-kitob xatolari tuzatildi, kichik ekranlarga moslashuvi, PDF tuzatildi"
+              },
+    "win8":  {
+                 "version":  "1.4.6",
+                 "min_version":  "1.4.6",
+                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.6/KursManager_Win8.exe",
+                 "sha256":  "c921e8ceb702ae1674ceacc350405d3c890b02c0b82b9e00b58aade077173763",
+                 "notes":  "Hisob-kitob xatolari tuzatildi, kichik ekranlarga moslashuvi, PDF tuzatildi"
+             },
+    "android":  {
+                    "version":  "1.4.6",
+                    "versionCode":  149,
+                    "min_version":  "1.4.6",
+                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.6/KursManager-v1.4.6.apk",
+                    "sha256":  "b6c34e8626bd4249ddda897165c13587c817f3cfb34438b004d1e8aeefe8dfa6",
+                    "notes":  "Hisob-kitob xatolari tuzatildi, kichik ekranlarga moslashuvi, PDF tuzatildi"
+                }
 }
