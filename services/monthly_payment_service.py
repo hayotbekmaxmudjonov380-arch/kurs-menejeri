@@ -120,6 +120,7 @@ def set_status(
         from services.sync_service import touch as _touch
         from services.sync_service import tomb as _tomb
 
+        s.add(st)
         who = st.full_name
 
         # ✓/✗ → o'quvchining umumiy to'lov holati ham yangilanadi

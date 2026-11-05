@@ -709,6 +709,7 @@ class PaymentDialog(QDialog):
             if idx >= 0:
                 self.student_combo.setCurrentIndex(idx)
             self.student_combo.setEnabled(False)
+            self.student_combo.setToolTip("To'lovni yaratgandan so'ng o'quvchini o'zgartirib bo'lmaydi.")
             self.amount_spin.setValue(payment["amount"])
             s_idx = self.status_combo.findData(payment["status"])
             if s_idx >= 0:

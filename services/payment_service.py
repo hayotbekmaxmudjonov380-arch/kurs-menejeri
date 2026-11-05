@@ -41,7 +41,7 @@ def list_payments(
 
             sched = _sched(
                 p.student.created_at if p.student else None,
-                p.student.payment_status if p.student else "unpaid",
+                p.student.payment_status if p.student else PaymentStatus.UNPAID,
             )
             result.append(
                 {

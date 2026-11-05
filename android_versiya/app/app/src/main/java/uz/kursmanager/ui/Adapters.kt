@@ -70,6 +70,68 @@ class RowAdapter(
     }
 }
 
+/** Kartochkali guruh: avatar + nom + ma'lumot + badge + ⋮ menyu (grid). */
+class GroupCardAdapter(
+    private var items: List<GroupCardData>,
+    private val onClick: (GroupCardData) -> Unit,
+    private val onMenu: (GroupCardData, String) -> Unit
+) : RecyclerView.Adapter<GroupCardAdapter.H>() {
+
+    data class GroupCardData(
+        val uid: String,
+        val name: String,
+        val sub: String = "",
+        val badgeText: String = "",
+        val badgeColor: String = "#93A1BD",
+        val menu: List<Pair<String, String>> = emptyList()
+    )
+
+    class H(v: View) : RecyclerView.ViewHolder(v) {
+        val avatar: TextView = v.findViewById(R.id.avatar)
+        val title: TextView = v.findViewById(R.id.title)
+        val sub: TextView = v.findViewById(R.id.sub)
+        val badgeSlot: LinearLayout = v.findViewById(R.id.badgeSlot)
+        val more: ImageButton = v.findViewById(R.id.btnMore)
+    }
+
+    override fun onCreateViewHolder(p: ViewGroup, t: Int): H =
+        H(LayoutInflater.from(p.context).inflate(R.layout.item_group_card, p, false))
+
+    override fun getItemCount() = items.size
+
+    override fun onBindViewHolder(h: H, pos: Int) {
+        val it = items[pos]
+        h.avatar.text = initialsOf(it.name)
+        h.title.text = it.name
+        h.sub.text = it.sub
+        h.sub.visibility = if (it.sub.isEmpty()) View.GONE else View.VISIBLE
+        h.badgeSlot.removeAllViews()
+        if (it.badgeText.isNotEmpty()) {
+            h.badgeSlot.addView(statusBadge(h.itemView.context, it.badgeText, it.badgeColor))
+        }
+        if (it.menu.isEmpty()) {
+            h.more.visibility = View.GONE
+        } else {
+            h.more.visibility = View.VISIBLE
+            h.more.setOnClickListener { v ->
+                val pm = PopupMenu(v.context, v)
+                it.menu.forEachIndexed { i, m -> pm.menu.add(0, i, i, m.second) }
+                pm.setOnMenuItemClickListener { mi ->
+                    onMenu(it, it.menu[mi.itemId].first)
+                    true
+                }
+                pm.show()
+            }
+        }
+        h.itemView.setOnClickListener { _ -> onClick(it) }
+    }
+
+    fun setData(d: List<GroupCardData>) {
+        items = d
+        notifyDataSetChanged()
+    }
+}
+
 /** Qator menyusi: Batafsil/Tahrirlash + statuslar + O'chirish (o'quvchi uchun). */
 fun studentMenu(current: String): List<Pair<String, String>> {
     val m = mutableListOf("detail" to "Batafsil", "edit" to "Tahrirlash")

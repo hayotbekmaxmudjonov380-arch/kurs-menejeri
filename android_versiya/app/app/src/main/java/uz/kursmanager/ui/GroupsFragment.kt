@@ -1,5 +1,6 @@
 package uz.kursmanager.ui
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
@@ -10,7 +11,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -21,14 +22,32 @@ import uz.kursmanager.data.Group
 
 class GroupsFragment : Fragment() {
 
-    private lateinit var adapter: RowAdapter
+    private lateinit var adapter: GroupCardAdapter
     private var all: List<Group> = emptyList()
 
     override fun onCreateView(inf: LayoutInflater, c: ViewGroup?, s: Bundle?): View {
         val v = inf.inflate(R.layout.fragment_list, c, false)
         val list = v.findViewById<RecyclerView>(R.id.list)
-        list.layoutManager = LinearLayoutManager(context)
-        adapter = RowAdapter(emptyList()) { row, act -> onAction(row.key, act) }
+        // Kartochkali grid: telefonda 2 ustun, katta ekranda ko'proq
+        val widthDp = (resources.displayMetrics.widthPixels / resources.displayMetrics.density).toInt()
+        val cols = (widthDp / 170).coerceAtLeast(1)
+        list.layoutManager = GridLayoutManager(context, cols)
+        // Kartochkalar orasidagi teng masofa (chetlarda yarmi — simmetriya uchun)
+        val sp = (12 * resources.displayMetrics.density).toInt()
+        list.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
+            ) {
+                outRect.left = sp / 2
+                outRect.right = sp / 2
+                outRect.bottom = sp
+            }
+        })
+        adapter = GroupCardAdapter(
+            emptyList(),
+            onClick = { card -> showMembers(card.uid) },
+            onMenu = { card, act -> onAction(card.uid, act) }
+        )
         list.adapter = adapter
         v.findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener { showEdit(null) }
         v.findViewById<EditText>(R.id.inSearch).apply {
@@ -44,19 +63,23 @@ class GroupsFragment : Fragment() {
             val repo = requireContext().app().repo
             all = repo.groups()
             val f = filter.trim().lowercase()
-            val rows = all
+            val cards = all
                 .filter { f.isEmpty() || it.name.lowercase().contains(f) }
                 .map { g ->
                     val count = repo.groupMemberCount(g.uid)
-                    RowAdapter.RowData(
+                    GroupCardAdapter.GroupCardData(
                         g.uid, g.name,
                         "$count ta o'quvchi • ${g.created_at.take(10)}",
                         badgeText = if (count > 0) "$count kishi" else "bo'sh",
                         badgeColor = if (count > 0) "#22C55E" else "#64748B",
-                        menu = listOf("members" to "👥 A'zolar", "edit" to "✏️ Nomini tahrirlash", "delete" to "🗑 O'chirish")
+                        menu = listOf(
+                            "members" to "👥 A'zolar",
+                            "edit" to "✏️ Nomini tahrirlash",
+                            "delete" to "🗑 O'chirish"
+                        )
                     )
                 }
-            adapter.setData(rows)
+            adapter.setData(cards)
         }
     }
 
