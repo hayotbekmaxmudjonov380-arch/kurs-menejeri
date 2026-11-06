@@ -56,6 +56,31 @@ $Repository = "kurs-menejeri"
 $RepoSlug = "$Owner/$Repository"
 $UpdatesJson = Join-Path $RepoRoot "updates.json"
 
+# --- 1b. Android versiyasini build.gradle.kts ga yozish ---
+# build.gradle.kts qotib qolsa, APK doim eski versionCode bilan chiqadi va
+# updates.json dagi baland code bilan foydalanuvchi yangilansa ham yana eski
+# versiya o'rnatiladi -> cheksiz majburiy yangilanish sikli hosil bo'ladi.
+$GradleFile = Join-Path $RepoRoot "android_versiya\app\app\build.gradle.kts"
+if (-not (Test-Path -LiteralPath $GradleFile)) {
+    throw "build.gradle.kts topilmadi: $GradleFile"
+}
+$UpdatesProbe = Get-Content -LiteralPath $UpdatesJson -Raw -Encoding UTF8 | ConvertFrom-Json
+$ApkVersionCode = [int]$UpdatesProbe.android.versionCode + 1
+
+$GradleText = [System.IO.File]::ReadAllText($GradleFile)
+$GradleText = [regex]::Replace(
+    $GradleText,
+    '(?m)^([ \t]*versionCode[ \t]*=[ \t]*)\d+',
+    '${1}' + $ApkVersionCode
+)
+$GradleText = [regex]::Replace(
+    $GradleText,
+    '(?m)^([ \t]*versionName[ \t]*=[ \t]*)"[^"]*"',
+    '${1}"' + $Version + '"'
+)
+[System.IO.File]::WriteAllText($GradleFile, $GradleText, (New-Object System.Text.UTF8Encoding($false)))
+Write-Host "Android versiya: versionCode=$ApkVersionCode, versionName=$Version" -ForegroundColor Green
+
 # --- 2. Win10 (Qt6) build ---
 Write-Host "Win10 (Qt6) build boshlandi..." -ForegroundColor Cyan
 & python -m PyInstaller KursManager.spec --noconfirm
@@ -146,6 +171,20 @@ if (-not $SkipApk) {
     if (-not (Test-Path -LiteralPath $ApkPath)) {
         throw "APK topilmadi: $ApkPath"
     }
+
+    # APK ichidagi haqiqiy versiyani tekshirish (mos kelmasa — sikl xavfi)
+    $MetaPath = Join-Path $AndroidProject "app\build\outputs\apk\release\output-metadata.json"
+    if (-not (Test-Path -LiteralPath $MetaPath)) {
+        throw "output-metadata.json topilmadi: $MetaPath"
+    }
+    $Meta = Get-Content -LiteralPath $MetaPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $BuiltCode = [int]$Meta.elements[0].versionCode
+    $BuiltName = [string]$Meta.elements[0].versionName
+    if ($BuiltCode -ne $ApkVersionCode -or $BuiltName -ne $Version) {
+        throw "APK versiyasi mos emas: build=$BuiltName/$BuiltCode, kutilgan=$Version/$ApkVersionCode"
+    }
+    Write-Host "APK versiya tekshiruvi: $BuiltName ($BuiltCode)" -ForegroundColor Green
+
     $ApkFileName = "KursManager-v$Version.apk"
 }
 
@@ -233,11 +272,8 @@ $Updates.win8.notes = $Notes
 
 if (-not $SkipApk) {
     $Updates.android.version = $Version
-    if ($Updates.android.versionCode -is [int]) {
-        $Updates.android.versionCode = [int]($Updates.android.versionCode) + 1
-    } else {
-        $Updates.android.versionCode = 149
-    }
+    # versionCode avtomatik oshiriladi va build.gradle.kts ga yozilgan qiymat bilan bir xil
+    $Updates.android.versionCode = $ApkVersionCode
     $Updates.android.min_version = $Version
     $Updates.android.url = "$BaseUrl/$ApkFileName"
     $Updates.android.sha256 = $ApkHash

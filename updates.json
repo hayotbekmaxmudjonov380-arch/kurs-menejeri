@@ -1,24 +1,24 @@
 {
     "win10":  {
-                  "version":  "1.4.7",
-                  "min_version":  "1.4.7",
-                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.7/KursManager.exe",
-                  "sha256":  "cfa45c09a4d9336a40eae80f245586af84300438e9df2e9ffd86c78ef929671e",
-                  "notes":  "Yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi, updates.json BOM xatoligi tuzatildi"
+                  "version":  "1.4.8",
+                  "min_version":  "1.4.8",
+                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.8/KursManager.exe",
+                  "sha256":  "1d95deb3c6e038413a28b3c90251b98f409b82c1f5bfb285c85ab7dcaba6c147",
+                  "notes":  "Android versiyasi avtomatik sinxronlashtirildi (yakuniy yangilanish sikli tuzatildi), yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi"
               },
     "win8":  {
-                 "version":  "1.4.7",
-                 "min_version":  "1.4.7",
-                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.7/KursManager_Win8.exe",
-                 "sha256":  "5cdfac89117855230ddd5d2a55406d090e24336ef7f6cedd9f607c7ac3364cc5",
-                 "notes":  "Yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi, updates.json BOM xatoligi tuzatildi"
+                 "version":  "1.4.8",
+                 "min_version":  "1.4.8",
+                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.8/KursManager_Win8.exe",
+                 "sha256":  "bcf677bdd6891ffece4ba2a93e1fe681f32e9c7abae259f7df0f8484e5809994",
+                 "notes":  "Android versiyasi avtomatik sinxronlashtirildi (yakuniy yangilanish sikli tuzatildi), yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi"
              },
     "android":  {
-                    "version":  "1.4.7",
-                    "versionCode":  150,
-                    "min_version":  "1.4.7",
-                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.7/KursManager-v1.4.7.apk",
-                    "sha256":  "4e8890fcfbc6e6d5014b280b959dc8a0ba57915c59ad76ed07074ff1c3330e6e",
-                    "notes":  "Yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi, updates.json BOM xatoligi tuzatildi"
+                    "version":  "1.4.8",
+                    "versionCode":  151,
+                    "min_version":  "1.4.8",
+                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.8/KursManager-v1.4.8.apk",
+                    "sha256":  "fa439f137c519470ccc5d9bcd77ac453b881edcbdd87f24377df9d7ba6a72ce3",
+                    "notes":  "Android versiyasi avtomatik sinxronlashtirildi (yakuniy yangilanish sikli tuzatildi), yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi"
                 }
 }
