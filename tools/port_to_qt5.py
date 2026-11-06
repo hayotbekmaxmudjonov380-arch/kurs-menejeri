@@ -45,6 +45,7 @@ COPY_FILES = [
     "ui/theme.py",
     "ui/widgets.py",
     "ui/dialogs.py",
+    "ui/update_dialog.py",
     "ui/main_window.py",
     "ui/phone_dialog.py",
     "ui/dashboard.py",

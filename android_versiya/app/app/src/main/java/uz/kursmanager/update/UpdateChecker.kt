@@ -13,6 +13,7 @@ import okhttp3.Request
 import org.json.JSONObject
 import uz.kursmanager.BuildConfig
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
@@ -86,63 +87,69 @@ object UpdateChecker {
         return 0
     }
 
-    suspend fun downloadAndInstall(context: Context, info: UpdateInfo, onProgress: (Int) -> Unit): Boolean =
-        withContext(Dispatchers.IO) {
-            try {
-                val request = Request.Builder()
-                    .url(info.url)
-                    .header("User-Agent", "KursManager-Android")
-                    .build()
+    /**
+     * APK'ni yuklab o'rnatish oynasini ochadi.
+     *
+     * @return null — muvaffaqiyat (o'rnatish oynasi ochildi), aks holda
+     *         foydalanuvchiga ko'rsatiladigan xato sababi.
+     */
+    suspend fun downloadAndInstall(
+        context: Context,
+        info: UpdateInfo,
+        onProgress: (Int) -> Unit
+    ): String? = withContext(Dispatchers.IO) {
+        try {
+            val request = Request.Builder()
+                .url(info.url)
+                .header("User-Agent", "KursManager-Android")
+                .build()
 
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful) return@withContext false
-                    val body = response.body ?: return@withContext false
+            client.newCall(request).execute().use { response ->
+                if (response.code == 404) {
+                    return@use "Yuklab olish havolasi topilmadi (404). Internetni tekshiring."
+                }
+                if (!response.isSuccessful) {
+                    return@use "Serverdan xato javob: HTTP ${response.code}"
+                }
+                val body = response.body ?: return@use "Server javobi bo'sh."
 
-                    val apkFile = File(context.cacheDir, "update_${info.version}.apk")
-                    val total = body.contentLength()
-                    var downloaded = 0L
+                val apkFile = File(context.cacheDir, "update_${info.version}.apk")
+                val total = body.contentLength()
+                var downloaded = 0L
 
-                    apkFile.outputStream().use { out ->
-                        body.byteStream().use { input ->
-                            val buffer = ByteArray(8192)
-                            var bytesRead: Int
-                            while (input.read(buffer).also { bytesRead = it } != -1) {
-                                out.write(buffer, 0, bytesRead)
-                                downloaded += bytesRead
-                                if (total > 0) {
-                                    val progress = ((downloaded * 100) / total).toInt()
-                                    withContext(Dispatchers.Main) { onProgress(progress) }
-                                }
+                apkFile.outputStream().use { out ->
+                    body.byteStream().use { input ->
+                        val buffer = ByteArray(8192)
+                        var bytesRead: Int
+                        while (input.read(buffer).also { bytesRead = it } != -1) {
+                            out.write(buffer, 0, bytesRead)
+                            downloaded += bytesRead
+                            if (total > 0) {
+                                val progress = ((downloaded * 100) / total).toInt()
+                                withContext(Dispatchers.Main) { onProgress(progress) }
                             }
                         }
                     }
-
-                    // Nayzat (sha256) tekshiruvi — fayl buzilgan bo'lsa o'rnatilmaydi
-                    val actual = sha256Of(apkFile)
-                    if (info.sha256.isNotBlank() &&
-                        !actual.equals(info.sha256.trim(), ignoreCase = true)
-                    ) {
-                        apkFile.delete()
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                context,
-                                "Yuklangan fayl buzilgan (nazorat summasi mos emas). Qayta urinib ko'ring.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                        return@withContext false
-                    }
-
-                    // O'rnatishni boshlash
-                    withContext(Dispatchers.Main) {
-                        installApk(context, apkFile)
-                    }
-                    true
                 }
-            } catch (_: Exception) {
-                false
+
+                // Nayzat (sha256) tekshiruvi — fayl buzilgan bo'lsa o'rnatilmaydi
+                val actual = sha256Of(apkFile)
+                if (info.sha256.isNotBlank() &&
+                    !actual.equals(info.sha256.trim(), ignoreCase = true)
+                ) {
+                    apkFile.delete()
+                    return@use "Yuklangan fayl buzilgan (nazorat summasi mos emas). Qayta urinib ko'ring."
+                }
+
+                // O'rnatishni boshlash (xato bo'lsa sabab qaytariladi)
+                withContext(Dispatchers.Main) { installApk(context, apkFile) }
             }
+        } catch (e: IOException) {
+            "Internet aloqasini tekshiring: ${e.message ?: "ulanib bo'lmadi"}"
+        } catch (e: Exception) {
+            "Xatolik: ${e.message ?: e.javaClass.simpleName}"
         }
+    }
 
     /** Faylning sha256 nazorat summasi (16-lik, katta harflar bilan). */
     private fun sha256Of(file: File): String {
@@ -157,7 +164,11 @@ object UpdateChecker {
         return digest.digest().joinToString("") { "%02X".format(it) }
     }
 
-    private fun installApk(context: Context, apkFile: File) {
+    /**
+     * O'rnatish oynasini ochadi.
+     * @return null — o'rnatish oynasi ochildi, aks holda xato sababi.
+     */
+    private fun installApk(context: Context, apkFile: File): String? {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!context.packageManager.canRequestPackageInstalls()) {
                 try {
@@ -169,7 +180,7 @@ object UpdateChecker {
                     }
                     context.startActivity(settingsIntent)
                     Toast.makeText(context, "Iltimos, ilovaga yangilanishni o'rnatish uchun ruxsat bering, so'ng qayta bosing.", Toast.LENGTH_LONG).show()
-                    return
+                    return "Ruxsat so'rildi — ilovaga ruxsat bering, so'ng «Yangilash» ni qayta bosing."
                 } catch (_: Exception) {
                 }
             }
@@ -190,10 +201,11 @@ object UpdateChecker {
             intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive")
         }
 
-        try {
+        return try {
             context.startActivity(intent)
+            null
         } catch (_: Exception) {
-            Toast.makeText(context, "O'rnatishda xatolik. Sozlamalardan 'Noma'lum manbalar' ni yoqing.", Toast.LENGTH_LONG).show()
+            "O'rnatishda xatolik. Sozlamalardan «Noma'lum manbalar» ni yoqing."
         }
     }
 }

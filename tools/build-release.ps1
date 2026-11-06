@@ -68,30 +68,61 @@ if (-not (Test-Path -LiteralPath $Win10ExePath)) {
     throw "Win10 exe topilmadi: $Win10ExePath"
 }
 
-$Win10ExeBackup = Join-Path $RepoRoot "dist\KursManager_Win10.exe"
-Copy-Item -LiteralPath $Win10ExePath -Destination $Win10ExeBackup -Force
-
 # --- 3. Win8 (Qt5) build ---
 $Win8ExePath = $null
 Write-Host "Win8 (Qt5) build boshlandi..." -ForegroundColor Cyan
+
+# win8/ klonini asosiy koddan qayta generatsiya qilish
+# (win8/ o'chirib qayta yaratiladi — barcha tahrirlar avval bitishi kerak)
+$PortScript = Join-Path $RepoRoot "tools\port_to_qt5.py"
+& python $PortScript
+if ($LASTEXITCODE -ne 0) {
+    throw "port_to_qt5.py bajarilmadi."
+}
+# Port jarayoni uzilgan bo'lsa win8/ bo'sh qolib ketishi mumkin — tekshiramiz
+if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot "win8\main.py"))) {
+    throw "win8/ kloni to'liq generatsiya qilinmadi (win8\main.py topilmadi)."
+}
+
 $Win8Spec = Join-Path $RepoRoot "win8\KursManager_Win8.spec"
 if (-not (Test-Path -LiteralPath $Win8Spec)) {
     throw "win8\KursManager_Win8.spec topilmadi."
 }
-& python -m PyInstaller $Win8Spec --noconfirm
-if ($LASTEXITCODE -ne 0) {
+
+# PySide2 (Qt5) faqat Python 3.9 da o'rnatilgan — PyInstaller aynan shu
+# Python bilan ishga tushiriladi, aks holda PySide2 moduli topilmaydi.
+$Py39 = "D:\Python39\python.exe"
+if (-not (Test-Path -LiteralPath $Py39)) {
+    throw "Python 3.9 topilmadi: $Py39"
+}
+
+# cwd win8/ bo'lishi shart: spec ichidagi ["main.py"] shu papkadan o'qiladi
+$Win8Root = Join-Path $RepoRoot "win8"
+# PyInstaller workpath oldindan yaratiladi (yo'q bo'lsa base_library.zip
+# yozishda FileNotFoundError beradi)
+foreach ($d in @("build", "build\KursManager_Win8", "dist")) {
+    $p = Join-Path $Win8Root $d
+    if (-not (Test-Path -LiteralPath $p)) {
+        New-Item -ItemType Directory -Path $p | Out-Null
+    }
+}
+Push-Location -LiteralPath $Win8Root
+try {
+    & $Py39 -m PyInstaller KursManager_Win8.spec --noconfirm
+    $Win8Exit = $LASTEXITCODE
+} finally {
+    Pop-Location
+}
+if ($Win8Exit -ne 0) {
     throw "PyInstaller Win8 build bajarilmadi."
 }
 
-$Win8DistDir = Join-Path $RepoRoot "win8\dist"
-if (-not (Test-Path -LiteralPath $Win8DistDir)) {
-    New-Item -ItemType Directory -Path $Win8DistDir | Out-Null
+$Win8BuiltExe = Join-Path $Win8Root "dist\KursManager.exe"
+if (-not (Test-Path -LiteralPath $Win8BuiltExe)) {
+    throw "Win8 exe topilmadi: $Win8BuiltExe"
 }
-$Win8ExePath = Join-Path $Win8DistDir "KursManager_Win8.exe"
-Copy-Item -LiteralPath $Win10ExePath -Destination $Win8ExePath -Force
-
-Copy-Item -LiteralPath $Win10ExeBackup -Destination $Win10ExePath -Force
-Remove-Item -LiteralPath $Win10ExeBackup -Force
+$Win8ExePath = Join-Path $Win8Root "dist\KursManager_Win8.exe"
+Copy-Item -LiteralPath $Win8BuiltExe -Destination $Win8ExePath -Force
 
 # --- 4. APK build (Android) ---
 $ApkPath = $null
@@ -222,8 +253,9 @@ Write-Host "updates.json yangilandi." -ForegroundColor Green
 # --- 9. Git commit + push ---
 if (-not $NoPush) {
     Write-Host "Git commit va push..." -ForegroundColor Cyan
-    & git add version.py updates.json
-    $CommitOut = & git commit -m "chore: release $Tag" 2>&1 | Out-String
+    # Barcha o'zgarishlar (kod, win8/ porti, versiya, updates.json) bitta commitda
+    & git add -A
+    $CommitOut = & git commit -m "chore: release $Tag - yangilanish oynasi (Qt+Android), win8 build tuzatildi" 2>&1 | Out-String
     if ($LASTEXITCODE -ne 0 -and $CommitOut -notmatch "nothing to commit") {
         Write-Warning "Git commit qilmadi (hollarda o'zgarish yo'q bo'lishi mumkin)."
     }

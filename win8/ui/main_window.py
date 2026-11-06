@@ -66,8 +66,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Kurs Manager")
         self.setWindowIcon(make_app_icon())
-        # Kichik ekranlarda (1366x768 noutbuklar) ham sig'ishi uchun
-        self.setMinimumSize(1024, 600)
+        # Kichik ekranlarda (1366x768 noutbuklar va undan kichik monitorlar) ham sig'ishi uchun
+        self.setMinimumSize(900, 550)
         try:
             from PySide2.QtWidgets import QApplication as _App
 
@@ -450,17 +450,21 @@ class MainWindow(QMainWindow):
             )
             return
 
-        from services import update_service
+        from PySide2.QtWidgets import QDialog
 
-        answer = QMessageBox.question(
+        from services import update_service
+        from ui.update_dialog import UpdateDialog
+
+        dlg = UpdateDialog(
             self,
-            "Yangilanish mavjud",
-            update_service.format_info(info),
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.Yes,
+            info=info,
+            forced=False,
+            current_version=update_service.get_current_version(),
         )
-        if answer == QMessageBox.Yes:
-            self._do_update(info)
+        dlg.updateRequested.connect(dlg.accept)
+        if dlg.exec() != QDialog.Accepted:
+            return
+        self._do_update(info)
 
     def _do_update(self, info: dict) -> None:
         import os
@@ -543,58 +547,17 @@ class MainWindow(QMainWindow):
             except RuntimeError:
                 pass
 
-        from PySide2.QtWidgets import (
-            QDialog,
-            QLabel,
-            QPushButton,
-            QVBoxLayout,
-        )
-
         from services import update_service
+        from ui.update_dialog import UpdateDialog
 
-        dlg = QDialog(self)
-        dlg.setObjectName("forcedUpdateDialog")
-        dlg.setWindowTitle("Yangilanish shart")
-        dlg.setWindowModality(Qt.WindowModality.ApplicationModal)
-        # ✕ tugmasi olib tashlanadi — faqat quyidagi tugmalar orqali yopiladi
-        dlg.setWindowFlag(Qt.WindowType.WindowCloseButtonHint, False)
-        dlg.setMinimumWidth(440)
-
-        layout = QVBoxLayout(dlg)
-        layout.setSpacing(12)
-
-        title = QLabel("🔄  Dastur yangilanishi shart")
-        font = title.font()
-        font.setBold(True)
-        font.setPointSize(font.pointSize() + 2)
-        title.setFont(font)
-        layout.addWidget(title)
-
-        ver = QLabel(
-            "Joriy versiya: v%s\n"
-            "Yangi versiya: v%s\n\n"
-            "%s"
-            % (
-                update_service.get_current_version(),
-                info.get("version", ""),
-                (info.get("notes") or "").strip(),
-            )
+        dlg = UpdateDialog(
+            self,
+            info=info,
+            forced=True,
+            current_version=update_service.get_current_version(),
         )
-        ver.setWordWrap(True)
-        layout.addWidget(ver)
-
-        status = QLabel("")
-        status.setWordWrap(True)
-        status.setObjectName("forcedStatus")
-        layout.addWidget(status)
-
-        btn_update = QPushButton("📥  Yangilash")
-        btn_update.clicked.connect(lambda: self._do_forced_update(dlg, info))
-        layout.addWidget(btn_update)
-
-        btn_exit = QPushButton("❌  Chiqish")
-        btn_exit.clicked.connect(QApplication.instance().quit)
-        layout.addWidget(btn_exit)
+        dlg.updateRequested.connect(lambda: self._do_forced_update(dlg, info))
+        dlg.exitRequested.connect(QApplication.instance().quit)
 
         self._forced_dialog = dlg
         dlg.show()
@@ -604,20 +567,13 @@ class MainWindow(QMainWindow):
         import os
         import tempfile
 
-        from PySide2.QtWidgets import QLabel, QPushButton
-
         from services import update_service
 
-        status = dlg.findChild(QLabel, "forcedStatus")
-        btns = dlg.findChildren(QPushButton)
-
         def _set_status(text: str) -> None:
-            if status is not None:
-                status.setText(text)
+            dlg.set_status(text)
             QApplication.processEvents()
 
-        for b in btns:
-            b.setEnabled(False)
+        dlg.set_busy(True)
         target = os.path.join(
             tempfile.gettempdir(),
             "KursManager_update_%s.exe" % info.get("version", "new"),
@@ -639,8 +595,7 @@ class MainWindow(QMainWindow):
                 "Yuklab bo'lmadi: %s\n"
                 "Internetni tekshiring va «Yangilash» ni qayta bosing." % exc
             )
-            for b in btns:
-                b.setEnabled(True)
+            dlg.set_busy(False)
             return
         _set_status("Nazorat summasi tekshirilmoqda...")
         if not update_service.verify_sha256(target, info.get("sha256", "")):
@@ -651,16 +606,14 @@ class MainWindow(QMainWindow):
                 os.remove(target)
             except OSError:
                 pass
-            for b in btns:
-                b.setEnabled(True)
+            dlg.set_busy(False)
             return
         _set_status("Almashtirilmoqda — dastur qayta ishga tushadi...")
         if not update_service.launch_updater(target):
             _set_status(
                 "Avtomatik almashtirib bo'lmadi.\nYuklangan fayl: %s" % target
             )
-            for b in btns:
-                b.setEnabled(True)
+            dlg.set_busy(False)
             return
         QApplication.instance().quit()
 

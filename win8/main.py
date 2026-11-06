@@ -72,7 +72,12 @@ def main() -> int:
 
     # Database'ni yaratish (exe toza ochiladi: faqat kurslar, o'quvchisiz)
     init_database()
-    demo_data.ensure_courses()
+    # Faqat yangi (bo'sh) bazada demo kurslarni kiritamiz — mavjud ma'lumotlarni yanglamaydi
+    from database.models import Course
+    with DATABASE.session() as _s:
+        _has_course = _s.query(Course).first() is not None
+    if not _has_course:
+        demo_data.ensure_courses()
     logger.info("Database tayyor: ok")
 
     # Saqlangan mavzuni yuklash
@@ -100,10 +105,10 @@ def main() -> int:
     app.setStyleSheet(theme.get_qss())
     app.setWindowIcon(make_app_icon())
 
+    _setup_exception_hook(app)
+
     window = MainWindow()
     window.show()
-
-    _setup_exception_hook(app)
 
     if args.smoke:
         from PySide2.QtCore import QTimer

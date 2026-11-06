@@ -14,7 +14,6 @@ import android.text.style.StyleSpan
 import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -158,85 +157,55 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showUpdateDialog(info: UpdateInfo) {
-        AlertDialog.Builder(this@MainActivity)
-            .setTitle("🔵 Yangilanish mavjud!")
-            .setMessage("Versiya: ${info.version}\n\n${info.notes}\n\nHozir yuklab o'rnatilsinmi?")
-            .setPositiveButton("Ha, yangilash") { _, _ ->
-                val progressDialog = android.app.ProgressDialog(this@MainActivity).apply {
-                    setTitle("Yangilanish yuklanmoqda")
-                    setMessage("Iltimos, kuting... 0%")
-                    setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL)
-                    max = 100
-                    setCancelable(false)
-                    show()
-                }
-                lifecycleScope.launch {
-                    val ok = UpdateChecker.downloadAndInstall(this@MainActivity, info) { progress ->
-                        progressDialog.progress = progress
-                        progressDialog.setMessage("Yuklanmoqda: $progress%")
-                    }
-                    try {
-                        progressDialog.dismiss()
-                    } catch (_: Exception) {}
-                    if (!ok) {
-                        Toast.makeText(this@MainActivity, "Yuklab bo'lmadi. Internetni tekshiring.", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-            .setNegativeButton("Keyinroq", null)
-            .show()
+        UpdateDialog(
+            activity = this,
+            info = info,
+            forced = false,
+            onUpdate = { dlg -> startDownload(dlg, info, forced = false) }
+        ).show()
     }
 
-    private var forcedDialog: AlertDialog? = null
+    private var forcedDialog: UpdateDialog? = null
 
     /** Majburiy yangilanish: yopib bo'lmaydigan oyna — faqat Yangilash/Chiqish. */
     private fun showForcedUpdateDialog(info: UpdateInfo) {
-        if (forcedDialog?.isShowing == true) return
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("⚠️ Yangilanish shart")
-            .setMessage(
-                "Ilovaning eski versiyasi ishlamaydi.\n" +
-                    "Joriy: v${BuildConfig.VERSION_NAME}\n" +
-                    "Yangi: v${info.version}\n\n" +
-                    "${info.notes}"
-            )
-            .setCancelable(false)
-            .setPositiveButton("📥  Yangilash", null)
-            .setNegativeButton("❌  Chiqish") { _, _ ->
-                finishAffinity()
+        if (forcedDialog?.isShowing() == true) return
+        val dlg = UpdateDialog(
+            activity = this,
+            info = info,
+            forced = true,
+            onUpdate = { d -> startDownload(d, info, forced = true) },
+            onExit = { finishAffinity() }
+        )
+        dlg.show()
+        forcedDialog = dlg
+    }
+
+    /** APK'ni yuklab o'rnatish oynasini ochadi; holat oynada ko'rsatiladi. */
+    private fun startDownload(dlg: UpdateDialog, info: UpdateInfo, forced: Boolean) {
+        dlg.setBusy(true)
+        dlg.setStatus("Yuklanmoqda... 0%")
+        lifecycleScope.launch {
+            val error = UpdateChecker.downloadAndInstall(this@MainActivity, info) { p ->
+                dlg.setStatus("Yuklanmoqda... $p%")
             }
-            .create()
-        dialog.setOnShowListener {
-            val btn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            btn.setOnClickListener {
-                btn.isEnabled = false
-                lifecycleScope.launch {
-                    val ok = UpdateChecker.downloadAndInstall(
-                        this@MainActivity, info
-                    ) { progress ->
-                        btn.text = "Yuklanmoqda... $progress%"
-                    }
-                    if (ok) {
-                        // O'rnatish oynasi ochildi — foydalanuvchi tasdiqlaydi
-                        Toast.makeText(
-                            this@MainActivity,
-                            "O'rnatish oynasi ochildi — «O'rnat» ni bosing.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Yuklab bo'lmadi. Internetni tekshiring va qayta bosing.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                    btn.isEnabled = true
-                    btn.text = "📥  Yangilash"
+            dlg.setBusy(false)
+            if (error == null) {
+                if (forced) {
+                    // Oyna yopilmaydi: foydalanuvchi o'rnatishni tasdiqlashi shart
+                    dlg.setStatus("O'rnatish oynasi ochildi — «O'rnat» ni bosing.")
+                } else {
+                    dlg.dismiss()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "O'rnatish oynasi ochildi — «O'rnat» ni bosing.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
+            } else {
+                dlg.setStatus(error)
             }
         }
-        dialog.show()
-        forcedDialog = dialog
     }
 
     // Ochilgan sahifa — sinxron muvaffaqiyatidan keyin aynan shu sahifani
@@ -306,5 +275,15 @@ class MainActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
             }
         }
+    }
+
+    override fun onDestroy() {
+        // Oyna oyna derazasi sifatida qolmasligi uchun (aylanish/finish)
+        try {
+            forcedDialog?.dismiss()
+        } catch (_: Exception) {
+        }
+        forcedDialog = null
+        super.onDestroy()
     }
 }

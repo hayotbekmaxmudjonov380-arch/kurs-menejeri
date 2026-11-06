@@ -133,7 +133,7 @@ def setup_table(
     table.horizontalHeader().setHighlightSections(False)
     table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
     table.verticalHeader().setDefaultSectionSize(48)
-    table.setWordWrap(False)
+    table.setWordWrap(True)
     table.setFocusPolicy(Qt.NoFocus)
 
     header = table.horizontalHeader()

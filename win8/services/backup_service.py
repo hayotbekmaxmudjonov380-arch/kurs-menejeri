@@ -49,6 +49,8 @@ def restore_backup(backup_path: str | Path) -> Path:
 
     shutil.copy2(tmp, DATABASE.path)
     tmp.unlink(missing_ok=True)
+    # Restore dan keyin eski sessiya/engine bilan bog'liq obyektlarni tozaymiz
+    DATABASE.dispose()
     DATABASE.recreate()
     logger.info("Database tiklandi: %s", src)
     return DATABASE.path

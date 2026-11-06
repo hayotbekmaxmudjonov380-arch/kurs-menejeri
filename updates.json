@@ -1,24 +1,24 @@
 {
     "win10":  {
-                  "version":  "1.4.6",
-                  "min_version":  "1.4.6",
-                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.6/KursManager.exe",
-                  "sha256":  "5e34f53d71b6dd8cea0a30bf73147506844446f47fbad570293c7e49362f5ea4",
-                  "notes":  "Hisob-kitob xatolari tuzatildi, kichik ekranlarga moslashuvi, PDF tuzatildi"
+                  "version":  "1.4.7",
+                  "min_version":  "1.4.7",
+                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.7/KursManager.exe",
+                  "sha256":  "cfa45c09a4d9336a40eae80f245586af84300438e9df2e9ffd86c78ef929671e",
+                  "notes":  "Yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi, updates.json BOM xatoligi tuzatildi"
               },
     "win8":  {
-                 "version":  "1.4.6",
-                 "min_version":  "1.4.6",
-                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.6/KursManager_Win8.exe",
-                 "sha256":  "c921e8ceb702ae1674ceacc350405d3c890b02c0b82b9e00b58aade077173763",
-                 "notes":  "Hisob-kitob xatolari tuzatildi, kichik ekranlarga moslashuvi, PDF tuzatildi"
+                 "version":  "1.4.7",
+                 "min_version":  "1.4.7",
+                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.7/KursManager_Win8.exe",
+                 "sha256":  "5cdfac89117855230ddd5d2a55406d090e24336ef7f6cedd9f607c7ac3364cc5",
+                 "notes":  "Yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi, updates.json BOM xatoligi tuzatildi"
              },
     "android":  {
-                    "version":  "1.4.6",
-                    "versionCode":  149,
-                    "min_version":  "1.4.6",
-                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.6/app-release.apk",
-                    "sha256":  "b6c34e8626bd4249ddda897165c13587c817f3cfb34438b004d1e8aeefe8dfa6",
-                    "notes":  "Hisob-kitob xatolari tuzatildi, kichik ekranlarga moslashuvi, PDF tuzatildi"
+                    "version":  "1.4.7",
+                    "versionCode":  150,
+                    "min_version":  "1.4.7",
+                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.4.7/KursManager-v1.4.7.apk",
+                    "sha256":  "4e8890fcfbc6e6d5014b280b959dc8a0ba57915c59ad76ed07074ff1c3330e6e",
+                    "notes":  "Yangilanish oynasi yangilandi (kompyuter va Android), Windows 8 (Qt5) build tuzatildi, updates.json BOM xatoligi tuzatildi"
                 }
 }

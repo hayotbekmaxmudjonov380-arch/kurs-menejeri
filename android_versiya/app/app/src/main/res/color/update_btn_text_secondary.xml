@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ikkinchi tugma matni: rgba(255,255,255,0.5), o'chirilganda yana xira -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:alpha="0.35"
+        android:color="#FFFFFFFF"
+        android:state_enabled="false" />
+    <item android:color="#8CFFFFFF" />
+</selector>
