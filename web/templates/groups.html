@@ -2,41 +2,110 @@
 {% block title %}Guruhlar — Kurs Manager{% endblock %}
 {% block content %}
 <style>
-    .table-dark-custom .btn-sm-action { padding: 10px 16px; font-size: 14px; border-radius: 10px; }
+    .group-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px;
+    }
+    .group-card {
+        position: relative;
+        background: var(--glass-surface);
+        -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+        backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+        border: 1px solid var(--glass-line);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: var(--glass-shadow-soft), var(--glass-edge-soft);
+        transition: transform .2s var(--ease-spring), box-shadow .3s ease-in-out, border-color .2s;
+    }
+    .group-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(43,127,255,.55);
+        box-shadow: 0 20px 46px rgba(0,0,0,.32), var(--glass-edge);
+    }
+    .gc-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .gc-avatar {
+        width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 22px; color: #fff;
+        background: linear-gradient(135deg, #3b8dff, #1f6fe8);
+        box-shadow: 0 8px 20px rgba(31,111,232,.4),
+            inset 1px 1px 2px -1px rgba(255,255,255,.55),
+            inset -1px -1px 2px 1px rgba(255,255,255,.3);
+    }
+    .gc-name {
+        color: var(--glass-title); font-size: 17px; font-weight: 800;
+        line-height: 1.25; word-break: break-word;
+    }
+    .gc-meta { color: var(--glass-sub); font-size: 12px; font-weight: 600; margin-top: 3px; }
+    .gc-chip {
+        display: inline-flex; align-items: center; gap: 7px;
+        background: var(--glass-surface-2); border: 1px solid var(--glass-line);
+        border-radius: 999rem; padding: 7px 14px; font-size: 12px; font-weight: 700;
+        color: var(--text); box-shadow: var(--glass-edge-soft); margin-bottom: 16px;
+    }
+    .gc-chip i { color: var(--primary); }
+    .gc-actions {
+        display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+        padding-top: 14px; border-top: 1px solid var(--glass-line);
+    }
+    .gc-actions .btn-sm-action {
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        padding: 9px 13px; font-size: 13px;
+    }
+    .gc-actions a.btn-sm-action { flex: 1; min-width: 110px; }
+    .gc-empty {
+        grid-column: 1 / -1;
+        background: var(--glass-surface);
+        -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+        backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+        border: 1px dashed var(--glass-line); border-radius: 24px;
+        padding: 48px 20px; text-align: center;
+        box-shadow: var(--glass-edge-soft);
+    }
+    .gc-empty i { font-size: 42px; color: var(--text-faint); display: block; margin-bottom: 12px; }
+    .gc-empty .t { color: var(--glass-title); font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+    .gc-empty .s { color: var(--glass-sub); font-size: 13px; }
 </style>
+
 <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <div class="page-title">Guruhlar</div>
         <div class="page-sub">O'quvchilarni xohlagancha guruhlarga bo'ling</div>
     </div>
-    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addGroupModal">+ Yangi guruh</button>
+    <button class="btn btn-primary-custom" data-bs-toggle="modal" data-bs-target="#addGroupModal"><i class="bi bi-plus-lg"></i> Yangi guruh</button>
 </div>
 
-<div class="card-dark p-0">
-    <div class="table-responsive">
-        <table class="table table-dark-custom">
-            <thead><tr><th>Guruh nomi</th><th>O'quvchilar soni</th><th>Yaratilgan sana</th><th>Amallar</th></tr></thead>
-            <tbody>
-                {% for g in groups %}
-                <tr>
-                    <td style="font-weight:600">👥 {{ g.name }}</td>
-                    <td>{{ g.member_count }}</td>
-                    <td>{{ g.created_display }}</td>
-                    <td>
-                        <div class="d-flex gap-1">
-                            <a href="{{ url_for('group_members_page', gid=g.id) }}" class="btn btn-sm-action"><i class="bi bi-people"></i> A'zolar</a>
-                            <button class="btn btn-sm-action" onclick="editGroup({{ g.id }}, '{{ g.name }}')" title="Nomini tahrirlash"><i class="bi bi-pencil"></i></button>
-                            <form method="post" action="{{ url_for('group_delete', gid=g.id) }}" onsubmit="return confirm('«{{ g.name }}» guruhini o\'chirishni xohlaysizmi? O\'quvchilar o\'chmaydi.')" style="display:inline">
-                                <button class="btn btn-sm-action text-danger" type="submit"><i class="bi bi-trash"></i></button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% if not groups %}<tr><td colspan="4" class="text-center py-4" style="color:var(--text-faint)">Guruhlar yo'q</td></tr>{% endif %}
-            </tbody>
-        </table>
+<div class="group-grid">
+    {% for g in groups %}
+    <div class="group-card">
+        <div class="gc-head">
+            <div class="gc-avatar"><i class="bi bi-people-fill"></i></div>
+            <div style="min-width:0">
+                <div class="gc-name">{{ g.name }}</div>
+                <div class="gc-meta"><i class="bi bi-calendar3"></i> {{ g.created_display }}</div>
+            </div>
+        </div>
+
+        <div class="gc-chip"><i class="bi bi-person-lines-fill"></i> {{ g.member_count }} o'quvchi</div>
+
+        <div class="gc-actions">
+            <a href="{{ url_for('group_members_page', gid=g.id) }}" class="btn btn-sm-action"><i class="bi bi-people"></i> A'zolar</a>
+            <button class="btn btn-sm-action" onclick="editGroup({{ g.id }}, '{{ g.name }}')" title="Nomini tahrirlash"><i class="bi bi-pencil"></i></button>
+            <form method="post" action="{{ url_for('group_delete', gid=g.id) }}" onsubmit="return confirm('«{{ g.name }}» guruhini o\'chirishni xohlaysizmi? O\'quvchilar o\'chmaydi.')" style="display:inline">
+                <button class="btn btn-sm-action text-danger" type="submit" title="O'chirish"><i class="bi bi-trash"></i></button>
+            </form>
+        </div>
     </div>
+    {% endfor %}
+
+    {% if not groups %}
+    <div class="gc-empty">
+        <i class="bi bi-collection"></i>
+        <div class="t">Guruhlar yo'q</div>
+        <div class="s">"Yangi guruh" tugmasi bilan birinchi guruhingizni yarating</div>
+    </div>
+    {% endif %}
 </div>
 
 <!-- Yangi guruh modali -->

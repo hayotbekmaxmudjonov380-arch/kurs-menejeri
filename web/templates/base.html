@@ -83,6 +83,16 @@
             --glass-title: #ffffff;
             --glass-sub: rgba(255, 255, 255, 0.62);
             --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+            /* Umumiy shisha sirtlar (tugma, qidiruv, panel, karta) */
+            --glass-surface: rgba(255, 255, 255, 0.07);
+            --glass-surface-2: rgba(255, 255, 255, 0.12);
+            --glass-line: rgba(255, 255, 255, 0.14);
+            --glass-shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.22);
+            --glass-edge-soft:
+                inset 1px 1px 3px -1px rgba(255, 255, 255, 0.3),
+                inset -1px -1px 3px 1px rgba(255, 255, 255, 0.22);
+            /* Ochiladigan shisha ro'yxat (filtr dropdown) */
+            --glass-pop: rgba(16, 26, 48, 0.94);
         }
         /* Glass ranglari — kunduzgi rejimda qorong'i matn (kontrast uchun) */
         [data-theme="light"] {
@@ -92,6 +102,14 @@
             --glass-title: #0b1830;
             --glass-sub: rgba(9, 22, 44, 0.62);
             --glass-shadow: 0 10px 30px rgba(9, 22, 44, 0.12);
+            --glass-surface: rgba(255, 255, 255, 0.55);
+            --glass-surface-2: rgba(255, 255, 255, 0.75);
+            --glass-line: rgba(9, 22, 44, 0.12);
+            --glass-shadow-soft: 0 10px 30px rgba(9, 22, 44, 0.1);
+            --glass-edge-soft:
+                inset 1px 1px 3px -1px rgba(255, 255, 255, 0.85),
+                inset -1px -1px 3px 1px rgba(255, 255, 255, 0.7);
+            --glass-pop: rgba(255, 255, 255, 0.94);
             --glass-edge:
                 inset 2px 2px 5px -2px rgba(255, 255, 255, 0.75),
                 inset -2px -2px 5px 2px rgba(255, 255, 255, 0.75),
@@ -109,7 +127,16 @@
             content: ""; position: fixed; left: -110px; top: -90px;
             width: 440px; height: 460px; border-radius: 50%;
             background: radial-gradient(circle, rgba(43,127,255,.34), transparent 66%);
-            filter: blur(46px); pointer-events: none; z-index: 0;
+            /* z-index:-1 -> glow kontent ORTIDA turadi (canvas fonidan yuqorida).
+               0 bo'lsa Bootstrap .modal-backdrop dan pastda qolardi. */
+            filter: blur(46px); pointer-events: none; z-index: -1;
+        }
+        /* Ikkinchi nur — shisha panellar backdrop-filter ga turarli narsa bersin */
+        body::after {
+            content: ""; position: fixed; right: -140px; top: 140px;
+            width: 480px; height: 480px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,122,255,.22), transparent 68%);
+            filter: blur(60px); pointer-events: none; z-index: -1;
         }
         .sidebar {
             position: fixed; top: 12px; left: 12px;
@@ -210,27 +237,43 @@
         }
 
         /* Main */
-        .main { margin-left: 240px; padding: 18px 26px 26px; min-height: 100vh; }
+        /* DIQQAT: .main ga z-index BERILMAYDI.
+           U stacking context yasardi va .main ichidagi Bootstrap modali
+           (z-index 1055) body darajasidagi .modal-backdrop (1050) ortida
+           qolib ketardi -> oyna ochilardi, lekin ichidagi maydonlarni
+           bosib/tanlab bo'lmasdi. Glow qatlamlari z-index:-1 bilan
+           alohida ortda turadi, shuning uchun .main ga zaxira kerak emas. */
+        .main { position: relative; margin-left: 240px; padding: 18px 26px 26px; min-height: 100vh; }
 
         /* Topbar (referens) */
         .topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
         .topbar-search { flex: 1; max-width: 640px; margin: 0 auto; }
         .topbar-right { display: flex; align-items: center; gap: 12px; margin-left: auto; }
         .icon-btn {
-            position: relative; width: 40px; height: 40px; border-radius: 12px;
-            background: transparent; border: 1px solid transparent; color: var(--text-dim);
+            position: relative; width: 40px; height: 40px; border-radius: 999rem;
+            background: var(--glass-surface); border: 1px solid var(--glass-line);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            color: var(--text-dim);
             display: flex; align-items: center; justify-content: center; font-size: 18px;
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), color .18s var(--ease-spring),
+                        transform .18s var(--ease-spring);
         }
-        .icon-btn:hover { background: var(--panel-alt); color: var(--heading); }
+        .icon-btn:hover { background: var(--glass-surface-2); color: var(--heading); transform: translateY(-1px); }
+        .icon-btn:active { transform: scale(.94); }
         .icon-btn .dot {
             position: absolute; top: 9px; right: 11px; width: 8px; height: 8px;
             border-radius: 50%; background: var(--primary); border: 2px solid var(--bg);
         }
         .date-badge {
             display: flex; align-items: center; gap: 8px;
-            background: var(--panel-alt); border: 1px solid var(--border);
-            border-radius: 12px; padding: 9px 14px; font-size: 13px; font-weight: 600;
+            background: var(--glass-surface); border: 1px solid var(--glass-line);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border-radius: 999rem; padding: 9px 16px; font-size: 13px; font-weight: 600;
             color: var(--text); white-space: nowrap;
+            box-shadow: var(--glass-edge-soft);
         }
         .date-badge i { color: var(--text-dim); }
 
@@ -257,10 +300,10 @@
         .stat .stat-value { font-size: 26px; font-weight: 800; color: var(--heading); line-height: 1.1; }
         .stat .stat-trend { color: #4ade80; font-size: 12px; font-weight: 700; margin-top: 2px; }
 
-        /* Solid badge'lar (referens) */
+        /* Solid badge'lar — pill (qolgan dizayn tili bilan bir xil) */
         .sbadge {
             display: inline-flex; align-items: center; gap: 6px;
-            border-radius: 8px; padding: 6px 12px;
+            border-radius: 999rem; padding: 6px 14px;
             font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap;
         }
         .sbadge i { font-size: 13px; }
@@ -278,27 +321,99 @@
         }
         .name-cell { display: flex; align-items: center; font-weight: 600; color: var(--text); }
 
-        /* Filtr panel (referens) */
+        /* Filtr panel — shisha.
+           z-index shart: .filter-bar ham, .card-dark ham backdrop-filter sababli
+           stacking context hosil qiladi. z-indexsiz .filter-bar DOM'da oldinroq
+           kelgani uchun jadval kartasi uni (ichidagi dropdown bilan birga) yopib
+           qo'yardi. */
         .filter-bar {
             display: flex; gap: 12px; margin-bottom: 14px;
-            background: var(--panel); border: 1px solid var(--border);
-            border-radius: 14px; padding: 12px;
+            position: relative; z-index: 5;
+            background: var(--glass-surface);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-line);
+            border-radius: 20px; padding: 12px;
+            box-shadow: var(--glass-shadow-soft), var(--glass-edge-soft);
         }
         .filter-bar .ref-search { flex: 2; }
         .filter-select {
-            flex: 1; background: var(--header-bg); border: 1px solid var(--border);
-            border-radius: 12px; color: var(--text); font-size: 13px; font-weight: 600;
-            padding: 11px 14px; min-width: 150px;
+            flex: 1; background: var(--glass-surface-2); border: 1px solid var(--glass-line);
+            border-radius: 999rem; color: var(--text); font-size: 13px; font-weight: 600;
+            padding: 11px 16px; min-width: 150px;
+            box-shadow: var(--glass-edge-soft);
+            transition: box-shadow .18s var(--ease-spring), border-color .18s var(--ease-spring);
         }
-        .filter-select:focus { border-color: var(--primary); outline: none; }
+        .filter-select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(43,127,255,.22); }
         .filter-select option { background: var(--panel); }
+
+        /* Shisha filtr dropdown.
+           Native <select> ro'yxatini Windows/Chrome oq chizadi (CSS ishlamaydi),
+           shuning uchun JS uni yashirib, o'z shisha menyusini quradi.
+           <select> formada qoladi -> GET so'rovi avvalgidek ishlaydi. */
+        .glass-select { position: relative; flex: 1; min-width: 150px; }
+        .glass-select > .filter-select { display: none; }
+        .gs-trigger {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; text-align: left; cursor: pointer;
+            background: var(--glass-surface-2); border: 1px solid var(--glass-line);
+            border-radius: 999rem; padding: 11px 18px;
+            color: var(--text); font-size: 13px; font-weight: 600;
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            box-shadow: var(--glass-edge-soft);
+            transition: border-color .18s var(--ease-spring), box-shadow .18s var(--ease-spring);
+        }
+        .gs-trigger:hover { border-color: var(--primary); }
+        .gs-trigger:focus-visible,
+        .gs-trigger:focus {
+            outline: none; border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(43,127,255,.22), var(--glass-edge-soft);
+        }
+        .gs-trigger .chev {
+            display: flex; flex-shrink: 0; color: var(--text-dim);
+            transition: transform .18s var(--ease-spring), color .18s var(--ease-spring);
+        }
+        .gs-trigger:hover .chev { color: var(--text); }
+        .glass-select.open .gs-trigger .chev { transform: rotate(180deg); color: var(--primary); }
+
+        .gs-menu {
+            position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 70;
+            background: var(--glass-pop);
+            -webkit-backdrop-filter: blur(18px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(18px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-line); border-radius: 18px; padding: 6px;
+            box-shadow: 0 18px 46px rgba(0,0,0,.5), var(--glass-edge-soft);
+            max-height: 300px; overflow: auto; display: none;
+        }
+        .glass-select.open .gs-menu { display: block; }
+        .gs-opt {
+            display: block; width: 100%; text-align: left;
+            border: none; background: transparent; font-family: inherit;
+            padding: 9px 14px; border-radius: 12px;
+            font-size: 13px; font-weight: 600; color: var(--text);
+            cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            transition: background .12s var(--ease-spring), color .12s var(--ease-spring);
+        }
+        .gs-opt:hover, .gs-opt:focus {
+            background: var(--glass-surface-2); color: var(--heading); outline: none;
+        }
+        .gs-opt[aria-selected="true"] {
+            background: rgba(43,127,255,.75); color: #fff;
+            box-shadow: inset 1px 1px 2px -1px rgba(255,255,255,.5);
+        }
         .btn-filter {
             display: flex; align-items: center; gap: 8px;
-            background: var(--panel-alt); border: 1px solid var(--border);
-            border-radius: 12px; padding: 11px 20px; color: var(--text);
+            background: var(--glass-surface); border: 1px solid var(--glass-line);
+            border-radius: 999rem; padding: 11px 20px; color: var(--text);
             font-size: 13px; font-weight: 700;
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), transform .18s var(--ease-spring);
         }
-        .btn-filter:hover { border-color: var(--primary); color: var(--heading); }
+        .btn-filter:hover { background: var(--glass-surface-2); border-color: var(--primary); color: var(--heading); }
+        .btn-filter:active { transform: scale(.97); }
 
         /* Jadval footeri + pagination (referens) */
         .table-footer {
@@ -307,53 +422,87 @@
         }
         .pagination-ref { display: flex; align-items: center; gap: 6px; }
         .pagination-ref a, .pagination-ref span.cur {
-            min-width: 34px; height: 34px; border-radius: 10px;
+            min-width: 34px; height: 34px; border-radius: 999rem;
             display: inline-flex; align-items: center; justify-content: center;
             font-size: 13px; font-weight: 700; text-decoration: none;
-            color: var(--text-dim); background: transparent; border: 1px solid transparent;
+            color: var(--text-dim); background: var(--glass-surface);
+            border: 1px solid var(--glass-line);
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), color .18s var(--ease-spring);
         }
-        .pagination-ref a:hover { background: var(--panel-alt); color: var(--heading); }
-        .pagination-ref span.cur { background: var(--primary); color: #fff; }
+        .pagination-ref a:hover { background: var(--glass-surface-2); color: var(--heading); }
+        .pagination-ref span.cur {
+            background: linear-gradient(180deg, #3b8dff, #1f6fe8); color: #fff;
+            border-color: rgba(255,255,255,.35);
+            box-shadow: 0 6px 16px rgba(31,111,232,.4);
+        }
         .pagination-ref span.disabled { opacity: .35; }
 
-        /* Cards */
+        /* Cards — shisha panel */
         .card-dark {
-            background: var(--panel); border: 1px solid var(--border);
-            border-radius: 14px; padding: 16px; margin-bottom: 12px;
+            background: var(--glass-surface);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-line);
+            border-radius: 22px; padding: 16px; margin-bottom: 12px;
+            box-shadow: var(--glass-shadow-soft), var(--glass-edge-soft);
         }
         .stat-card { text-align: left; }
         .stat-card .stat-label { color: var(--text-faint); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
         .stat-card .stat-value { font-size: 26px; font-weight: 800; }
 
-        /* Buttons */
+        /* Buttons — shisha pill */
         .btn-primary-custom {
-            background: #2b7fff; color: #fff; border: none;
-            border-radius: 10px; padding: 11px 20px; font-size: 14px; font-weight: 700;
+            background: linear-gradient(180deg, #3b8dff, #1f6fe8); color: #fff;
+            border: 1px solid rgba(255,255,255,.28);
+            border-radius: 999rem; padding: 11px 22px; font-size: 14px; font-weight: 700;
             white-space: nowrap;
+            box-shadow: 0 8px 22px rgba(31,111,232,.35),
+                inset 1px 1px 2px -1px rgba(255,255,255,.55),
+                inset -1px -1px 2px 1px rgba(255,255,255,.3);
+            transition: transform .18s var(--ease-spring), box-shadow .3s ease-in-out, filter .18s;
         }
-        .btn-primary-custom:hover { background: #1d6ff2; color: #fff; }
-        .btn-success-custom { background: var(--green-dark); color: #fff; border: none; border-radius: 8px; }
+        .btn-primary-custom:hover { filter: brightness(1.08); color: #fff; transform: translateY(-1px); }
+        .btn-primary-custom:active { transform: scale(.97); }
+        .btn-success-custom { background: var(--green-dark); color: #fff; border: none; border-radius: 999rem; }
         .btn-success-custom:hover { background: var(--green); color: #fff; }
-        .btn-warning-custom { background: #d97706; color: #fff; border: none; border-radius: 8px; }
+        .btn-warning-custom { background: #d97706; color: #fff; border: none; border-radius: 999rem; }
         .btn-warning-custom:hover { background: var(--yellow); color: #fff; }
-        .btn-danger-custom { background: var(--red-dark); color: #fff; border: none; border-radius: 8px; }
+        .btn-danger-custom { background: var(--red-dark); color: #fff; border: none; border-radius: 999rem; }
         .btn-danger-custom:hover { background: var(--red); color: #fff; }
         .btn-ghost {
-            background: transparent; color: var(--text); border: 1px solid var(--border);
-            border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+            background: var(--glass-surface); color: var(--text);
+            border: 1px solid var(--glass-line);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border-radius: 999rem; padding: 9px 18px; font-size: 13px; font-weight: 600;
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), transform .18s var(--ease-spring);
         }
-        .btn-ghost:hover { background: var(--panel-alt); border-color: var(--primary); color: var(--heading); }
+        .btn-ghost:hover { background: var(--glass-surface-2); border-color: var(--primary); color: var(--heading); }
+        .btn-ghost:active { transform: scale(.97); }
         .btn-chip {
-            background: transparent; color: var(--text-dim); border: 1px solid var(--border);
-            border-radius: 999px; padding: 7px 16px; font-size: 12px; font-weight: 600;
+            background: var(--glass-surface); color: var(--text-dim);
+            border: 1px solid var(--glass-line);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border-radius: 999rem; padding: 7px 16px; font-size: 12px; font-weight: 600;
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), color .18s var(--ease-spring);
         }
-        .btn-chip:hover { border-color: var(--primary); color: var(--text); }
-        .btn-chip.active { background: var(--primary-dark); color: #fff; border-color: var(--primary-dark); }
+        .btn-chip:hover { background: var(--glass-surface-2); border-color: var(--primary); color: var(--text); }
+        .btn-chip.active { background: rgba(43,127,255,.75); color: #fff; border-color: rgba(255,255,255,.35); }
         .btn-sm-action {
-            background: var(--panel-alt); color: var(--text); border: 1px solid var(--border);
-            border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600;
+            background: var(--glass-surface); color: var(--text);
+            border: 1px solid var(--glass-line);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border-radius: 999rem; padding: 7px 14px; font-size: 12px; font-weight: 600;
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), transform .18s var(--ease-spring);
         }
-        .btn-sm-action:hover { background: var(--hover-bg); border-color: var(--primary); color: var(--heading); }
+        .btn-sm-action:hover { background: var(--glass-surface-2); border-color: var(--primary); color: var(--heading); }
+        .btn-sm-action:active { transform: scale(.96); }
 
         /* Tables */
         .table-dark-custom {
@@ -361,8 +510,11 @@
             margin-bottom: 0;
         }
         .table-dark-custom thead th {
-            background: var(--header-bg); color: var(--text-faint); font-size: 11px;
+            background: var(--glass-surface-2); color: var(--text-faint); font-size: 11px;
             font-weight: 700; border: none; padding: 12px 10px; white-space: nowrap;
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            box-shadow: var(--glass-edge-soft);
         }
         .table-dark-custom tbody td {
             border-bottom: 1px solid var(--row-border); padding: 10px; font-size: 13px;
@@ -371,27 +523,36 @@
         .table-dark-custom tbody tr:hover { background: rgba(59,130,246,.06); }
 
         /* Badges */
-        .badge-paid { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 700; }
+        .badge-paid { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 999rem; padding: 4px 12px; font-size: 11px; font-weight: 700; }
 
-        .badge-unpaid { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.3); border-radius: 12px; padding: 4px 12px; font-size: 11px; font-weight: 700; }
-        .badge-active { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; }
-        .badge-inactive { background: rgba(100,116,139,.12); color: var(--text-dim); border: 1px solid rgba(100,116,139,.3); border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 700; }
+        .badge-unpaid { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.3); border-radius: 999rem; padding: 4px 12px; font-size: 11px; font-weight: 700; }
+        .badge-active { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.3); border-radius: 999rem; padding: 4px 10px; font-size: 11px; font-weight: 700; }
+        .badge-inactive { background: rgba(100,116,139,.12); color: var(--text-dim); border: 1px solid rgba(100,116,139,.3); border-radius: 999rem; padding: 4px 10px; font-size: 11px; font-weight: 700; }
 
-        /* Inputs */
+        /* Inputs — shisha */
         .form-control, .form-select {
-            background: var(--input-bg); border: 1px solid var(--border-soft);
-            border-radius: 8px; color: var(--text); font-size: 13px; padding: 9px 12px;
+            background: var(--glass-surface-2); border: 1px solid var(--glass-line);
+            border-radius: 14px; color: var(--text); font-size: 13px; padding: 10px 14px;
+            box-shadow: var(--glass-edge-soft);
+            transition: border-color .18s var(--ease-spring), box-shadow .18s var(--ease-spring);
         }
         .form-control:focus, .form-select:focus {
-            background: var(--input-bg); border-color: var(--primary); color: var(--text);
-            box-shadow: 0 0 0 2px rgba(59,130,246,.15);
+            background: var(--glass-surface-2); border-color: var(--primary); color: var(--text);
+            box-shadow: 0 0 0 3px rgba(43,127,255,.22);
         }
         .form-control::placeholder { color: var(--text-faint); }
         .form-label { color: var(--text-dim); font-size: 12px; font-weight: 600; margin-bottom: 4px; }
         .form-select option { background: var(--panel); color: var(--text); }
 
-        /* Modal */
-        .modal-content { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; }
+        /* Modal — shisha */
+        .modal-content {
+            background: var(--glass-surface-2);
+            -webkit-backdrop-filter: blur(18px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(18px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-line);
+            border-radius: 24px;
+            box-shadow: 0 24px 70px rgba(0,0,0,.45), var(--glass-edge-soft);
+        }
         .modal-header { border-bottom: 1px solid var(--border); }
         .modal-footer { border-top: 1px solid var(--border); }
         .modal-title { color: var(--heading); font-weight: 700; }
@@ -409,8 +570,11 @@
         .page-sub { color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
 
         .dropdown-menu-dark-custom {
-            background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-            padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,.4);
+            background: var(--glass-surface-2);
+            -webkit-backdrop-filter: blur(16px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(16px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-line); border-radius: 16px;
+            padding: 4px; box-shadow: 0 12px 40px rgba(0,0,0,.45), var(--glass-edge-soft);
         }
         .dropdown-menu-dark-custom .dropdown-item {
             color: var(--text); border-radius: 6px; padding: 7px 16px; font-size: 12px;
@@ -418,13 +582,22 @@
         .dropdown-menu-dark-custom .dropdown-item:hover { background: var(--primary-dark); color: #fff; }
         .dropdown-menu-dark-custom .dropdown-divider { border-color: var(--border); }
 
-        /* Qidiruv (referens dizayn — to'q yumaloq) */
+        /* Qidiruv — shisha, to'q pill (referens uslubi) */
         .ref-search {
             display: flex; align-items: center; gap: 10px;
-            background: var(--header-bg); border: 1px solid var(--border);
-            border-radius: 12px; padding: 11px 16px; width: 100%;
+            background: var(--glass-surface);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-line);
+            border-radius: 999rem; padding: 11px 18px; width: 100%;
+            box-shadow: var(--glass-edge-soft);
+            transition: background .18s var(--ease-spring), box-shadow .3s ease-in-out;
         }
-        .ref-search:focus-within { border-color: var(--primary); }
+        .ref-search:focus-within {
+            background: var(--glass-surface-2);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(43,127,255,.22), var(--glass-edge-soft);
+        }
         .ref-search i { color: var(--text-faint); font-size: 16px; }
         .ref-search input {
             background: transparent; border: none; outline: none;
@@ -443,12 +616,18 @@
         .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
         .month-pill {
             display: flex; align-items: center; justify-content: center; gap: 6px;
-            padding: 10px 4px; margin: 0; border-radius: 12px;
-            border: 1px solid var(--border); background: var(--panel-alt);
+            padding: 10px 4px; margin: 0; border-radius: 999rem;
+            border: 1px solid var(--glass-line); background: var(--glass-surface);
             color: var(--text-dim); font-size: 13px; font-weight: 700;
-            cursor: pointer; transition: all .15s; user-select: none;
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            box-shadow: var(--glass-edge-soft);
+            cursor: pointer; user-select: none;
+            transition: background .18s var(--ease-spring), color .18s var(--ease-spring),
+                        transform .18s var(--ease-spring);
         }
-        .month-pill:hover { border-color: var(--primary); color: var(--text); }
+        .month-pill:hover { background: var(--glass-surface-2); border-color: var(--primary); color: var(--text); }
+        .month-pill:active { transform: scale(.96); }
         .month-pill.active {
             background: rgba(34,197,94,.14); border-color: var(--green); color: var(--green);
         }
@@ -459,6 +638,15 @@
         /* Jadval ichidagi dropdown kesilib qolmasligi uchun */
         .table-responsive.dropdown-open { overflow: visible !important; }
         .table-responsive { padding-bottom: 4px; }
+        /* Jadval konteynerini karta burchagiga mos kesish.
+           `card-dark` overflow:visible bo'lgani uchun thead fon'i karta
+           yumaloq burchagini yopib qo'yardi (eski dizayn qoldig'i).
+           Konteynerni o'zimiz kesamiz — gorizontal scroll ham saqlanadi. */
+        .card-dark > .table-responsive { border-radius: 21px; }
+        /* Dropdown ochilganda overflow:visible bo'ladi — kesish to'xtaydi,
+           shu uchun sarlavha qatori burchagi o'zida ham yumaloq. */
+        .table-dark-custom thead th:first-child { border-top-left-radius: 21px; }
+        .table-dark-custom thead th:last-child { border-top-right-radius: 21px; }
     </style>
 </head>
 <body>
@@ -521,12 +709,19 @@
     <div class="main">
         <!-- Topbar -->
         <div class="topbar">
+            <!-- Qidiruv faqat o'z qidiruvi YO'Q bo'limlarda chiqadi.
+                 Dashboard / Ro'yxatga olish / To'lovlar / Test natijalari da
+                 sahifa ichida o'z qidiruvi bor edi — bir xil placeholder bilan
+                 ikkita qidiruv ketma-ket ko'rinardi. Shu to'rda har bir
+                 sahifada aynan bitta qidiruv qoladi. -->
+            {% if request.endpoint not in ('index', 'students_page', 'payments_page', 'tests_page') %}
             <form action="{{ url_for('students_page') }}" method="get" class="topbar-search">
                 <div class="ref-search">
                     <i class="bi bi-search"></i>
                     <input type="text" name="search" autocomplete="off" placeholder="F.I.Sh yoki telefon raqamini qidiring..." value="{{ search if search is defined else '' }}">
                 </div>
             </form>
+            {% endif %}
             <div class="topbar-right">
                 <button class="icon-btn" id="themeToggle" title="Kunduzgi / Tungi rejim"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
                 <button class="icon-btn" title="Bildirishnomalar"><i class="bi bi-bell"></i><span class="dot"></span></button>
@@ -579,6 +774,112 @@
             var box = e.target.closest('.table-responsive');
             if (box) box.classList.remove('dropdown-open');
         });
+
+        // ===== Shisha filtr dropdown =====
+        // Native <select> ro'yxati Windows/Chrome da oq chiziladi (option styling
+        // ishlamaydi), shuning uchun JS uni yashirib, shisha trigger + menyu quradi.
+        // <select> formada qoladiganligi sababli GET filtr avvalgidek ishlaydi.
+        (function () {
+            function closeAll() {
+                document.querySelectorAll('.glass-select.open').forEach(function (w) {
+                    w.classList.remove('open');
+                    var t = w.querySelector('.gs-trigger');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            function init(sel) {
+                if (sel.dataset.gsReady) return;
+                sel.dataset.gsReady = '1';
+
+                var wrap = document.createElement('div');
+                wrap.className = 'glass-select';
+
+                var trigger = document.createElement('button');
+                trigger.type = 'button';
+                trigger.className = 'gs-trigger';
+                trigger.setAttribute('aria-haspopup', 'listbox');
+                trigger.setAttribute('aria-expanded', 'false');
+                if (sel.title) trigger.title = sel.title;
+
+                var label = document.createElement('span');
+                label.className = 'gs-label';
+
+                var chev = document.createElement('span');
+                chev.className = 'chev';
+                chev.setAttribute('aria-hidden', 'true');
+                chev.innerHTML = '<svg width="12" height="8" viewBox="0 0 12 8" fill="none">' +
+                    '<path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="1.8" ' +
+                    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+                trigger.appendChild(label);
+                trigger.appendChild(chev);
+
+                var menu = document.createElement('div');
+                menu.className = 'gs-menu';
+                menu.setAttribute('role', 'listbox');
+
+                function sync() {
+                    var i = sel.selectedIndex;
+                    label.textContent = i >= 0 ? sel.options[i].text : '';
+                    Array.prototype.forEach.call(menu.children, function (c, n) {
+                        if (n === i) c.setAttribute('aria-selected', 'true');
+                        else c.removeAttribute('aria-selected');
+                    });
+                }
+
+                Array.prototype.forEach.call(sel.options, function (opt) {
+                    var item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'gs-opt';
+                    item.setAttribute('role', 'option');
+                    item.textContent = opt.text;
+                    item.addEventListener('click', function () {
+                        sel.value = opt.value;
+                        sync();
+                        closeAll();
+                        trigger.focus();
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    menu.appendChild(item);
+                });
+
+                sel.parentNode.insertBefore(wrap, sel);
+                wrap.appendChild(trigger);
+                wrap.appendChild(menu);
+                wrap.appendChild(sel);
+
+                trigger.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var willOpen = !wrap.classList.contains('open');
+                    closeAll();
+                    wrap.classList.toggle('open', willOpen);
+                    trigger.setAttribute('aria-expanded', String(willOpen));
+                    if (willOpen) {
+                        var cur = menu.querySelector('[aria-selected="true"]') || menu.firstChild;
+                        if (cur) cur.focus();
+                    }
+                });
+                menu.addEventListener('click', function (e) { e.stopPropagation(); });
+
+                sync();
+            }
+
+            function boot() {
+                document.querySelectorAll('select.filter-select').forEach(init);
+            }
+
+            document.addEventListener('click', closeAll);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') closeAll();
+            });
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', boot);
+            } else {
+                boot();
+            }
+        })();
 
         // ===== O'quvchi ma'lumotlari oynasi (Yangi o'quvchi dizaynida) =====
         async function showStudentDetail(id) {

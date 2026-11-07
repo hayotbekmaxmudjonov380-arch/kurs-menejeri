@@ -85,7 +85,7 @@ class ReportsPage(QWidget):
             ["Kurs", "O'quvchilar soni", "To'laganlar", "Tushgan summa", "Kutilayotgan summa"],
             widths=[240, 160, 160, 220, 220],
         )
-        layout.addWidget(self.table, 1)
+        layout.addWidget(self.table.in_glass())
 
         journal_title = QLabel("Faoliyat jurnali (PDF ga ham qo'shiladi)")
         journal_title.setObjectName("cardTitle")
@@ -95,7 +95,7 @@ class ReportsPage(QWidget):
             widths=[140, 140, 700],
         )
         self.journal_table.setMinimumHeight(180)
-        layout.addWidget(self.journal_table, 1)
+        layout.addWidget(self.journal_table.in_glass())
 
         self.refresh()
 

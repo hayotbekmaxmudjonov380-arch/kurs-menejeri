@@ -54,7 +54,7 @@ class GroupsPage(QWidget):
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         self.table.cellDoubleClicked.connect(self._on_double_click)
-        layout.addWidget(self.table, 1)
+        layout.addWidget(self.table.in_glass())
 
         self.refresh()
 

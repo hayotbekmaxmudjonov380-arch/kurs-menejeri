@@ -99,7 +99,7 @@ class PaymentsPage(QWidget):
         self.table = setup_table(columns, widths)
         self.table.verticalHeader().setDefaultSectionSize(64)
         self.table.cellClicked.connect(self._on_cell_clicked)
-        layout.addWidget(self.table, 1)
+        layout.addWidget(self.table.in_glass())
 
         hint = QLabel("Katakchani bosing — to'lov kartochkasi ochiladi (summa + avtomatik foiz)")
         hint.setObjectName("hintText")

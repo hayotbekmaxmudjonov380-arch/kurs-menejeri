@@ -19,15 +19,26 @@ from PySide2.QtWidgets import (
 )
 
 from ui.theme import STATUS_META
+from ui import glass as _glass
 
 
 class Card(QFrame):
-    """Yumaloq burchakli panel."""
+    """Yumaloq burchakli shisha panel (web'dagi .card-dark bilan bir xil)."""
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
         self.setObjectName("card")
         self.setMinimumHeight(90)
+
+    def paintEvent(self, event) -> None:  # noqa: N802
+        # QSS `#card` fonini chizmaymiz — shisha o'zimiz chizadi
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        tk = _glass.tokens()
+        rect = self.rect().adjusted(1, 1, -1, -1)
+        _glass.paint_glass(p, self, rect, 22, tk["surface"], tk["line"],
+                           highlight=0.85)
+        p.end()
 
 
 class PageHeader(QWidget):
@@ -117,12 +128,48 @@ def make_search_input(placeholder: str = "F.I.Sh yoki telefon raqamini qidiring.
     return edit
 
 
+class GlassPanel(QFrame):
+    """Shisha panel — ichiga jadval yoki boshqa kontent joylashtiriladi.
+
+    Web'dagi `.card-dark` bilan bir xil: backdrop-blur + rgba + 1px chegara.
+    """
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setObjectName("glassPanel")
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(14, 14, 14, 14)
+        lay.setSpacing(0)
+
+    def paintEvent(self, event) -> None:  # noqa: N802
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        tk = _glass.tokens()
+        _glass.paint_glass(p, self, self.rect().adjusted(1, 1, -1, -1),
+                           22, tk["surface"], tk["line"], highlight=0.85)
+        p.end()
+
+
+class GlassTable(QTableWidget):
+    """`in_glass()` bilan o'z shisha paneliga o'raladigan jadval.
+
+    Sahifalarda `layout.addWidget(self.table.in_glass(), 1)` deyiladi —
+    import qo'shish shart emas.
+    """
+
+    def in_glass(self, padding: int = 14) -> GlassPanel:
+        panel = GlassPanel()
+        panel.layout().setContentsMargins(padding, padding, padding, padding)
+        panel.layout().addWidget(self, 1)
+        return panel
+
+
 def setup_table(
     columns: list[str],
     widths: list[int] | None = None,
     stretch_last: bool = True,
-) -> QTableWidget:
-    table = QTableWidget(0, len(columns))
+) -> GlassTable:
+    table = GlassTable(0, len(columns))
     table.setHorizontalHeaderLabels(columns)
     table.verticalHeader().setVisible(False)
     table.setShowGrid(False)

@@ -30,6 +30,7 @@ from ui.reports import ReportsPage
 from ui.students import StudentsPage
 from ui.tests import TestsPage
 from ui import theme
+from ui.glass import GlassFrame, GlassRoot
 from utils.branding import logo_path, make_app_icon
 from version import VERSION
 
@@ -91,7 +92,7 @@ class MainWindow(QMainWindow):
                 page.data_changed.connect(self.refresh_all)
 
     def _build_ui(self) -> None:
-        central = QWidget()
+        central = GlassRoot()
         central.setObjectName("pageRoot")
         self.setCentralWidget(central)
 
@@ -99,20 +100,21 @@ class MainWindow(QMainWindow):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
-        # ---------- Sidebar ----------
-        sidebar = QFrame()
+        # ---------- Sidebar (shisha) ----------
+        sidebar = GlassFrame()
         sidebar.setObjectName("sidebar")
         sidebar.setFixedWidth(235)
         sidebar_layout = QVBoxLayout(sidebar)
-        sidebar_layout.setContentsMargins(12, 16, 12, 14)
+        # shisha panel inset=10 ichida qolishi uchun (web: padding 20/8 + sidenav 6)
+        sidebar_layout.setContentsMargins(24, 30, 24, 18)
         sidebar_layout.setSpacing(6)
 
         # ---------- Sarlavha (zamonaviy) ----------
         header = QFrame()
         header.setObjectName("sideHeader")
         header_lay = QHBoxLayout(header)
-        header_lay.setContentsMargins(14, 14, 14, 14)
-        header_lay.setSpacing(11)
+        header_lay.setContentsMargins(8, 10, 6, 10)
+        header_lay.setSpacing(9)
 
         logo_pix = QPixmap(str(logo_path()))
         logo_lbl = QLabel()
@@ -120,15 +122,15 @@ class MainWindow(QMainWindow):
         if not logo_pix.isNull():
             logo_lbl.setPixmap(
                 logo_pix.scaled(
-                    46,
-                    46,
+                    40,
+                    40,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
             )
         else:
             logo_lbl.setText("KM")
-        logo_lbl.setFixedSize(46, 46)
+        logo_lbl.setFixedSize(40, 40)
         logo_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_lay.addWidget(logo_lbl)
 

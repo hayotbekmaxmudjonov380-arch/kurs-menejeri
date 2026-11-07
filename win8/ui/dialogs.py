@@ -1048,7 +1048,7 @@ class GroupDetailDialog(QDialog):
             ["F.I.Sh", "Telefon", "To'lov holati", "Ro'yxatga olish sanasi", ""],
             widths=[200, 140, 170, 150, 80],
         )
-        self.root.addWidget(self.table, 1)
+        self.root.addWidget(self.table.in_glass())
 
         close_row = QHBoxLayout()
         close_row.addStretch(1)

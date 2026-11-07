@@ -45,7 +45,7 @@ class CoursesPage(QWidget):
         layout.addLayout(toolbar)
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
-        layout.addWidget(self.table, 1)
+        layout.addWidget(self.table.in_glass())
 
         self.refresh()
 

@@ -80,7 +80,7 @@ class AttendancePage(QWidget):
         self.table = setup_table(columns, [260] + [96] * 7 + [120])
         self.table.verticalHeader().setDefaultSectionSize(64)
         self.table.cellClicked.connect(self._on_cell_clicked)
-        layout.addWidget(self.table, 1)
+        layout.addWidget(self.table.in_glass())
 
         hint = QLabel("Katakchani bosing: — → ✓ (kelgan) → ✗ (kelmagan) → —")
         hint.setObjectName("hintText")

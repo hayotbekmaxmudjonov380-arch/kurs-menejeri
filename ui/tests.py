@@ -69,7 +69,7 @@ class TestsPage(QWidget):
         layout.addLayout(toolbar)
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
-        layout.addWidget(self.table, 1)
+        layout.addWidget(self.table.in_glass())
 
         hint = QLabel("A'lo ≥85%  •  Yaxshi ≥70%  •  Qoniqarli ≥55%  •  Qoniqarsiz <55%")
         hint.setObjectName("hintText")
