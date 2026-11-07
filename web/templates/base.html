@@ -61,6 +61,7 @@
         }
         [data-theme="light"] .btn-close { filter: none; }
         [data-theme="light"] .sidenav a.active .nav-count { background: #1d4ed8; color: #fff; }
+        :root {
             --primary: #2b7fff;
             --primary-dark: #1d4ed8;
             --primary-hover: #1d6ff2;
@@ -69,6 +70,32 @@
             --yellow: #f5a80b;
             --red: #f0435a;
             --red-dark: #dc2626;
+            /* Glassmorphism — berilgan React kod asosida */
+            --glass-blue: rgba(0, 122, 255, 0.404);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-on: rgba(255, 255, 255, 90%);
+            --glass-hi: #06214d;
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --glass-edge:
+                inset 2px 2px 5px -2px rgba(255, 255, 255, 0.4),
+                inset -2px -2px 5px 2px rgba(255, 255, 255, 0.4),
+                inset 0 -2px 0 rgba(255, 255, 255, 0.2);
+            --glass-title: #ffffff;
+            --glass-sub: rgba(255, 255, 255, 0.62);
+            --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+        }
+        /* Glass ranglari — kunduzgi rejimda qorong'i matn (kontrast uchun) */
+        [data-theme="light"] {
+            --glass-on: rgba(9, 22, 44, 0.9);
+            --glass-hi: #0d3f91;
+            --glass-border: rgba(9, 22, 44, 0.16);
+            --glass-title: #0b1830;
+            --glass-sub: rgba(9, 22, 44, 0.62);
+            --glass-shadow: 0 10px 30px rgba(9, 22, 44, 0.12);
+            --glass-edge:
+                inset 2px 2px 5px -2px rgba(255, 255, 255, 0.75),
+                inset -2px -2px 5px 2px rgba(255, 255, 255, 0.75),
+                inset 0 -2px 0 rgba(255, 255, 255, 0.5);
         }
         * { font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; }
@@ -77,45 +104,71 @@
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-        /* Sidebar (referens dizayn) */
-        .sidebar {
-            position: fixed; top: 0; left: 0; width: 210px; height: 100vh;
-            background: var(--bg-dark); border-right: 1px solid var(--sidebar-border);
-            padding: 18px 14px; display: flex; flex-direction: column; z-index: 100;
+        /* Sidebar — glassmorphism (berilgan React kod asosida) */
+        body::before {
+            content: ""; position: fixed; left: -110px; top: -90px;
+            width: 440px; height: 460px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(43,127,255,.34), transparent 66%);
+            filter: blur(46px); pointer-events: none; z-index: 0;
         }
-        .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+        .sidebar {
+            position: fixed; top: 12px; left: 12px;
+            width: 214px; height: calc(100vh - 24px);
+            background: var(--glass-blue);
+            -webkit-backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            backdrop-filter: blur(12px) saturate(180%) contrast(200%);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            box-shadow: var(--glass-shadow), var(--glass-edge);
+            padding: 20px 8px 8px;
+            display: flex; flex-direction: column; z-index: 100;
+        }
+        .brand { display: flex; align-items: center; gap: 10px; margin: 0 8px 18px; }
         .brand-logo {
             width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
             background: linear-gradient(135deg, #2b7fff, #1d4ed8);
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-size: 20px;
+            box-shadow: 0 4px 14px rgba(0,122,255,.45);
         }
-        .sidebar-title { color: var(--heading); font-size: 16px; font-weight: 800; margin-bottom: 1px; }
-        .sidebar-sub { color: var(--text-faint); font-size: 10px; }
-        .sidenav { display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-title { color: var(--glass-title); font-size: 16px; font-weight: 800; margin-bottom: 1px; }
+        .sidebar-sub { color: var(--glass-sub); font-size: 10px; }
+        .sidenav { display: flex; flex-direction: column; gap: 6px; padding: 0 6px; }
         .sidenav a {
             display: flex; align-items: center; gap: 12px;
-            padding: 12px 14px; border-radius: 12px;
-            color: var(--text-dim); font-size: 14px; font-weight: 600;
-            text-decoration: none; position: relative; transition: all .15s;
+            padding: 11px 14px; border-radius: 999rem;
+            color: var(--glass-on); font-size: 13.5px; font-weight: 600;
+            text-decoration: none; position: relative;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                background .18s var(--ease-spring),
+                color .18s var(--ease-spring),
+                transform .18s var(--ease-spring),
+                box-shadow .3s ease-in-out;
         }
-        .sidenav a i { font-size: 18px; line-height: 1; }
-        .sidenav a:hover { background: rgba(130,150,180,.12); color: var(--heading); }
+        .sidenav a i { font-size: 17px; line-height: 1; flex-shrink: 0; }
+        .sidenav a:hover {
+            background-color: rgba(255,255,255,.55);
+            box-shadow:
+                inset 2px 2px 5px -2px rgba(255,255,255,.4),
+                inset -2px -1px 5px 0 rgba(255,255,255,.4),
+                inset 0 -2px 0 rgba(255,255,255,.2);
+            transform: translateX(3px);
+            color: var(--glass-hi);
+        }
         .sidenav a.active {
-            background: linear-gradient(90deg, #1d4ed8, #2b7fff);
-            color: #fff;
+            background: rgba(237,237,237,.74);
+            color: var(--glass-hi);
+            box-shadow: var(--glass-edge);
         }
-        .sidenav a.active::after {
-            content: ""; position: absolute; right: -14px; top: 9px; bottom: 9px;
-            width: 4px; border-radius: 4px; background: #3b82f6;
-        }
+        .sidenav a:active { transform: scale(.98); }
         .nav-count {
             margin-left: auto; min-width: 22px; height: 22px; padding: 0 6px;
             border-radius: 11px; background: var(--red); color: #fff;
             font-size: 11px; font-weight: 800;
             display: inline-flex; align-items: center; justify-content: center;
         }
-        .sidenav a.active .nav-count { background: rgba(255,255,255,.9); color: #1d4ed8; }
+        .sidenav a.active .nav-count { background: #1d4ed8; color: #fff; }
 
         /* Push-habar toast (o'ng pastki burchak) */
         #toastBox {
@@ -137,11 +190,19 @@
         .rem-toast .t-time { color: var(--primary); font-size: 12px; font-weight: 700; margin-bottom: 6px; }
         .rem-toast .t-note { color: var(--text-dim); font-size: 12px; margin-bottom: 10px; word-break: break-word; }
         .sidebar-footer {
-            margin-top: auto; padding: 10px 12px; background: transparent;
-            border: 1px solid var(--border); border-radius: 12px;
+            margin: auto 6px 0; padding: 10px 12px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid var(--glass-border); border-radius: 20px;
             display: flex; align-items: center; gap: 10px; cursor: pointer;
+            transition: background .18s var(--ease-spring), box-shadow .3s ease-in-out;
         }
-        .sidebar-footer:hover { border-color: var(--primary); }
+        .sidebar-footer:hover {
+            background: rgba(255,255,255,.3);
+            box-shadow:
+                inset 2px 2px 5px -2px rgba(255,255,255,.4),
+                inset -2px -1px 5px 0 rgba(255,255,255,.4),
+                inset 0 -2px 0 rgba(255,255,255,.2);
+        }
         .avatar {
             width: 36px; height: 36px; border-radius: 50%; display: flex; flex-shrink: 0;
             align-items: center; justify-content: center; font-weight: 800; font-size: 14px;
@@ -149,7 +210,7 @@
         }
 
         /* Main */
-        .main { margin-left: 210px; padding: 18px 26px 26px; min-height: 100vh; }
+        .main { margin-left: 240px; padding: 18px 26px 26px; min-height: 100vh; }
 
         /* Topbar (referens) */
         .topbar { display: flex; align-items: center; gap: 14px; margin-bottom: 22px; }
@@ -451,7 +512,7 @@
             <div class="avatar">FA</div>
             <div style="flex:1;min-width:0">
                 <div style="color:var(--heading);font-size:13px;font-weight:700;white-space:nowrap">Farziddin Aminov</div>
-                <div style="color:var(--text-faint);font-size:11px">O'qituvchi</div>
+                <div style="color:var(--glass-sub);font-size:11px">O'qituvchi</div>
             </div>
         </div>
     </div>
