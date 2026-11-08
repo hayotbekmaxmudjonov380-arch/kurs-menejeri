@@ -59,6 +59,7 @@ class RemindersPage(QWidget):
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         self.refresh()
 
@@ -136,7 +137,7 @@ class RemindersPage(QWidget):
 
     def _add_reminder(self) -> None:
         dlg = dialogs.ReminderDialog(self)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _edit_reminder(self, rem: dict) -> None:
@@ -144,7 +145,7 @@ class RemindersPage(QWidget):
         if not current:
             return
         dlg = dialogs.ReminderDialog(self, current)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _toggle_reminder(self, rem: dict) -> None:

@@ -59,6 +59,7 @@ class RemindersPage(QWidget):
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         self.refresh()
 

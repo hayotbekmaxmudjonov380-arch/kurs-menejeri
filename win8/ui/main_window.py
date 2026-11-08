@@ -277,6 +277,13 @@ class MainWindow(QMainWindow):
         if app is not None:
             app.setStyleSheet(theme.get_qss())
         self._update_theme_btn()
+        try:
+            from ui import glass
+            glass.invalidate()
+        except Exception:
+            pass
+        if self.centralWidget():
+            self.centralWidget().update()
         self.refresh_all()
 
     def _on_nav_clicked(self, button: QPushButton) -> None:
@@ -434,7 +441,7 @@ class MainWindow(QMainWindow):
             )
             return
         dlg = PhoneDialog(self)
-        dlg.exec()
+        dlg.exec_()
 
     def _on_update_btn_clicked(self) -> None:
         info = getattr(self, "_update_info", None)
@@ -464,7 +471,7 @@ class MainWindow(QMainWindow):
             current_version=update_service.get_current_version(),
         )
         dlg.updateRequested.connect(dlg.accept)
-        if dlg.exec() != QDialog.Accepted:
+        if dlg.exec_() != QDialog.Accepted:
             return
         self._do_update(info)
 

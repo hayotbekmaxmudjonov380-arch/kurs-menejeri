@@ -70,6 +70,7 @@ class TestsPage(QWidget):
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         hint = QLabel("A'lo ≥85%  •  Yaxshi ≥70%  •  Qoniqarli ≥55%  •  Qoniqarsiz <55%")
         hint.setObjectName("hintText")
@@ -165,7 +166,7 @@ class TestsPage(QWidget):
             dialogs.warning(self, "O'quvchilar ro'yxati bo'sh.\nAvval o'quvchi qo'shing.")
             return
         dlg = dialogs.TestDialog(self)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _edit_result(self, res: dict) -> None:
@@ -173,7 +174,7 @@ class TestsPage(QWidget):
         if not current:
             return
         dlg = dialogs.TestDialog(self, current)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _delete_result(self, res: dict) -> None:

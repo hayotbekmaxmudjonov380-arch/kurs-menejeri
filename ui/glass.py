@@ -143,7 +143,14 @@ def apply_backdrop(src: QPixmap) -> QImage:
         lum = rgb @ _np.array([0.2126, 0.7152, 0.0722], _np.float32)
         rgb = lum[..., None] + (rgb - lum[..., None]) * SAT
         chunk[:, :, :3] = _np.clip(rgb, 0, 255).astype(_np.uint8)
-        return QImage(chunk.tobytes(), w, h, w * 4, QImage.Format.Format_ARGB32)
+        # QImage(data, ...) tashqi xotirani KO'ZLAYDI (nusxalamaydi).
+        # `data` lokal o'zgaruvchida saqlanadi va copy() shu vaqtda
+        # bajariladi — aks holda PySide2 da use-after-free crash bo'ladi.
+        data = chunk.tobytes()
+        out = QImage(data, w, h, w * 4, QImage.Format.Format_ARGB32)
+        if out.isNull():
+            return img
+        return out.copy()
     except Exception:  # noqa: BLE001
         return img
 

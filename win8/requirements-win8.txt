@@ -4,3 +4,5 @@ PyInstaller>=5.0,<7
 reportlab>=3.5,<5
 qrcode>=7.4,<9
 pillow>=10.0,<13
+# shiboken2 NumPy 2.x bilan ABI mos kelmaydi - 1.x shart
+numpy>=1.21,<2

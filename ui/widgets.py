@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QEvent, QObject, Qt, QTimer
+from PySide6.QtCore import QEvent, QObject, QSize, Qt, QTimer
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QSizePolicy,
     QTableWidget,
     QTableWidgetItem,
     QVBoxLayout,
@@ -125,6 +126,9 @@ def make_search_input(placeholder: str = "F.I.Sh yoki telefon raqamini qidiring.
     edit.setPlaceholderText(placeholder)
     edit.setClearButtonEnabled(True)
     edit.setMinimumWidth(280)
+    # Qt border-radius chegarasi: radius <= min(w,h)/2 bo'lishi shart,
+    # aks holda qiymat butunlay tashlab yuboriladi. 44/2 = 22 -> pill.
+    edit.setFixedHeight(44)
     return edit
 
 
@@ -140,6 +144,10 @@ class GlassPanel(QFrame):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(14, 14, 14, 14)
         lay.setSpacing(0)
+        # Kontentga sig'adi (web'dagi kabi), ortiqcha joy bo'sh qoladi.
+        # `Maximum` — sizeHint dan katta bo'lmaydi, lekin kichraytirsa bo'ladi
+        # (ko'p qator bo'lsa jadval ichida scroll paydo bo'ladi).
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
 
     def paintEvent(self, event) -> None:  # noqa: N802
         p = QPainter(self)
@@ -156,6 +164,30 @@ class GlassTable(QTableWidget):
     Sahifalarda `layout.addWidget(self.table.in_glass(), 1)` deyiladi —
     import qo'shish shart emas.
     """
+
+    def sizeHint(self) -> QSize:  # noqa: N802
+        """QTableView sizeHint'i ishonarsiz (192px default qaytaradi).
+
+        Shisha panel kontentga sig'ishi uchun qatorlar bo'yicha hisoblaymiz:
+        panel balandligi = jadval balandligi +28 (14px ichki margin ×2).
+        """
+        base = super().sizeHint()
+        rows = self.rowCount()
+        if rows <= 0:
+            return base
+        try:
+            hheader = self.horizontalHeader()
+            hh = hheader.height() if hheader is not None else 0
+            if hh <= 0:
+                hh = 40
+            vheader = self.verticalHeader()
+            rh = vheader.sectionSize(0) if vheader.count() else 0
+            if rh <= 0:
+                rh = vheader.defaultSectionSize()
+            total = int(hh) + int(rh) * rows
+        except Exception:  # noqa: BLE001
+            return base
+        return QSize(max(int(base.width()), 200), max(int(base.height()), total))
 
     def in_glass(self, padding: int = 14) -> GlassPanel:
         panel = GlassPanel()
@@ -182,8 +214,13 @@ def setup_table(
     table.verticalHeader().setDefaultSectionSize(48)
     table.setWordWrap(True)
     table.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+    table.viewport().setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+    table.viewport().setStyleSheet("background: transparent;")
+    table.setStyleSheet("background: transparent; border: none;")
 
     header = table.horizontalHeader()
+    header.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
+    header.setStyleSheet("background: transparent; border: none;")
     if widths:
         for idx, w in enumerate(widths):
             header.resizeSection(idx, w)
@@ -207,19 +244,29 @@ def text_color_for(hex_color: str) -> QColor:
     return QColor(hex_color)
 
 
-FIELD_BG = "#333"
-FIELD_ACCENT = "#00bfff"
+FIELD_BG = "rgba(255, 255, 255, 0.07)"
+FIELD_ACCENT = "#3b82f6"
 
 
 def _field_stylesheet(floated: bool, focused: bool) -> str:
+    from ui import glass as _glass
+
+    if _glass._is_light():
+        bg = "#ffffff"
+        text = "#101f36"
+        border = "#3b82f6" if (floated and focused) else "rgba(9, 22, 44, 0.16)"
+    else:
+        bg = "rgba(255, 255, 255, 0.07)"
+        text = "#e8eef7"
+        border = "#3b82f6" if (floated and focused) else "rgba(255, 255, 255, 0.14)"
+
     pad = "18px 10px 6px 10px" if floated else "10px"
-    border = FIELD_ACCENT if (floated and focused) else "rgba(105, 105, 105, 0.4)"
     return (
         "QLineEdit {"
-        f"background-color: {FIELD_BG}; color: #fff;"
-        f"border: 1px solid {border}; border-radius: 10px;"
+        f"background-color: {bg}; color: {text};"
+        f"border: 1px solid {border}; border-radius: 12px;"
         f"padding: {pad}; font-size: 14px;"
-        "selection-background-color: #00bfff; selection-color: #fff;"
+        "selection-background-color: #1d4ed8; selection-color: #fff;"
         "}"
     )
 
@@ -228,7 +275,7 @@ class FloatLabel(QObject):
     """Matn maydoni ichidagi suzuvchi label.
 
     Bo'sh va fokusda bo'lmasa — label ichida katta kulrang;
-    yozilganda yoki fokusda — yuqoriga chiqib kichik cyan bo'ladi.
+    yozilganda yoki fokusda — yuqoriga chiqib kichik ko'k bo'ladi.
     Har qanday QLineEdit (jumladan MoneyEdit, DateEdit) bilan ishlaydi.
     """
 
@@ -262,12 +309,12 @@ class FloatLabel(QObject):
         font = self.label.font()
         width = max(0, self.edit.width() - 20)
         if f:
-            self.label.setGeometry(10, 1, width, 15)
+            self.label.setGeometry(10, 2, width, 15)
             font.setPointSize(8)
             font.setBold(True)
             self.label.setFont(font)
             self.label.setStyleSheet(
-                "background: transparent; border: none; color: #00bfff;"
+                "background: transparent; border: none; color: #3b82f6;"
             )
         else:
             self.label.setGeometry(10, 13, width, 22)
@@ -275,7 +322,7 @@ class FloatLabel(QObject):
             font.setBold(False)
             self.label.setFont(font)
             self.label.setStyleSheet(
-                "background: transparent; border: none; color: #8a8a8a;"
+                "background: transparent; border: none; color: #94a3b8;"
             )
         self.edit.setStyleSheet(_field_stylesheet(f, self.edit.hasFocus()))
         self.label.show()
@@ -285,7 +332,7 @@ class FloatLabel(QObject):
 class PulseDot(QWidget):
     """Sarlavha yonidagi pulsatsiyalanuvchi nuqta."""
 
-    def __init__(self, parent=None, color: str = "#00bfff"):
+    def __init__(self, parent=None, color: str = "#3b82f6"):
         super().__init__(parent)
         self._color = QColor(color)
         self.setFixedSize(22, 22)

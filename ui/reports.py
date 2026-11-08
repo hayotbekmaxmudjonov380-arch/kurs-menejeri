@@ -85,7 +85,11 @@ class ReportsPage(QWidget):
             ["Kurs", "O'quvchilar soni", "To'laganlar", "Tushgan summa", "Kutilayotgan summa"],
             widths=[240, 160, 160, 220, 220],
         )
-        layout.addWidget(self.table.in_glass())
+        summary_panel = self.table.in_glass()
+        # Ikki jadval ustma-ust: jurnal juda ko'p qator bo'lishi mumkin,
+        # aks holda birinchi jadval siqilib ketadi. 150 = kamida sarlavha + 1 qator.
+        summary_panel.setMinimumHeight(150)
+        layout.addWidget(summary_panel)
 
         journal_title = QLabel("Faoliyat jurnali (PDF ga ham qo'shiladi)")
         journal_title.setObjectName("cardTitle")
@@ -95,7 +99,11 @@ class ReportsPage(QWidget):
             widths=[140, 140, 700],
         )
         self.journal_table.setMinimumHeight(180)
-        layout.addWidget(self.journal_table.in_glass())
+        journal_panel = self.journal_table.in_glass()
+        # Jurnal cheksiz kattalashmasin — aks holda kurslar jadvali siqiladi.
+        journal_panel.setMaximumHeight(300)
+        layout.addWidget(journal_panel)
+        layout.addStretch(1)
 
         self.refresh()
 

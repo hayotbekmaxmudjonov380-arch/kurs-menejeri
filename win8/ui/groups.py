@@ -55,6 +55,7 @@ class GroupsPage(QWidget):
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         self.table.cellDoubleClicked.connect(self._on_double_click)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         self.refresh()
 
@@ -120,7 +121,7 @@ class GroupsPage(QWidget):
 
     def _add_group(self) -> None:
         dlg = dialogs.GroupDialog(self)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _edit_group(self, group: dict) -> None:
@@ -128,12 +129,12 @@ class GroupsPage(QWidget):
         if not current:
             return
         dlg = dialogs.GroupDialog(self, current)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _show_members(self, group: dict) -> None:
         dlg = dialogs.GroupDetailDialog(self, group["id"], on_change=self._after_change)
-        dlg.exec()
+        dlg.exec_()
 
     def _delete_group(self, group: dict) -> None:
         if not dialogs.confirm(

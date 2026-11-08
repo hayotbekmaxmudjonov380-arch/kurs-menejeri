@@ -43,6 +43,9 @@ COPY_FILES = [
     "services/sync_service.py",
     "ui/__init__.py",
     "ui/theme.py",
+    # glass.py OBLIGATORIY: barcha shisha effekt shu yerda. Ro'yxatdan
+    # chiqsa win8/ui/ da ImportError bo'ladi (real topilma).
+    "ui/glass.py",
     "ui/widgets.py",
     "ui/dialogs.py",
     "ui/update_dialog.py",
@@ -105,10 +108,13 @@ REPLACEMENTS = [
     (r"QMessageBox\.StandardButton\.Yes", "QMessageBox.Yes"),
     (r"QMessageBox\.StandardButton\.No", "QMessageBox.No"),
     (r"QDialog\.DialogCode\.Accepted", "QDialog.Accepted"),
-    # app.exec() -> app.exec_() (PySide2)
-    (r"return app\.exec\(\)", "return app.exec_()"),
-    # QMenu.exec() Qt5 da yo'q -> exec_() (QDialog.exec() esa Qt5 da bor, tegilmaydi)
-    (r"menu\.exec\(", "menu.exec_("),
+    # PySide2 5.15 da .exec() YO'Q — faqat exec_() bor.
+    # Tekshirildi: hasattr(QApplication/QDialog/QMenu, 'exec') == False.
+    # Oldingi qoida faqat "return app.exec()" va "menu.exec(" ni qamrab
+    # olgani uchun 18+ joydagi dlg.exec() / box.exec() Win8'da
+    # AttributeError berar edi. Endi BARCHA chaqiruvlar o'zgaradi.
+    # (.exec_( takrorlanmaydi: ".exec_(" shu patternga tushmaydi)
+    (r"\.exec\(", ".exec_("),
 ]
 
 MODELS_FIXES = [
@@ -167,6 +173,8 @@ def build() -> Path:
         text = fix_qaction_imports(text)
         # Qolgan PySide6 qoldiqlari bo'lmasligi kerak
         assert "PySide6" not in text, f"PySide6 qoldi: {rel}"
+        # PySide2 da .exec() yo'q -> hamma chaqiruv exec_() bo'lishi shart
+        assert not re.search(r"\.exec\(", text), f".exec( qoldi: {rel}"
         dst.write_text(text, encoding="utf-8")
 
     # image/ va assets/ nusxalash (logo + icon)
@@ -176,9 +184,13 @@ def build() -> Path:
             shutil.copytree(src, DEST / folder)
 
     # requirements-win8.txt
+    # numpy shart: ui/glass.py (shisha backdrop-blur) uni ishlatadi.
+    # shiboken2 NumPy 2.x bilan ABI mos KELMAYDI -> 1.x bilan cheklanadi.
     (DEST / "requirements-win8.txt").write_text(
         "PySide2==5.15.2.1\nSQLAlchemy>=2.0,<3\nPyInstaller>=5.0,<7\n"
-        "reportlab>=3.5,<5\nqrcode>=7.4,<9\npillow>=10.0,<13\n",
+        "reportlab>=3.5,<5\nqrcode>=7.4,<9\npillow>=10.0,<13\n"
+        "# shiboken2 NumPy 2.x bilan ABI mos kelmaydi - 1.x shart\n"
+        "numpy>=1.21,<2\n",
         encoding="utf-8",
     )
 

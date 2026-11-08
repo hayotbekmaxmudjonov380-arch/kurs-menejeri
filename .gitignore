@@ -36,3 +36,7 @@ Thumbs.db
 
 # PyInstaller build keshi (qayta quriladi)
 build-win8/
+
+# Tashqi vositalar fayllari (loyihaga tegishli emas)
+install.sh
+system-design.md

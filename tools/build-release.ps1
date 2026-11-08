@@ -203,8 +203,14 @@ if (-not $SkipApk) {
 
 # --- 6. GitHub tekshiruvi ---
 Write-Host "GitHub tekshiruvi..." -ForegroundColor Cyan
-& gh auth status -h github.com >$null 2>&1
-if ($LASTEXITCODE -ne 0) {
+# EAP=Stop da "2>&1" native stderr ni NativeCommandError qilib portlatadi
+# (gh auth status statusni STDERR ga chiqaradi). Vaqtincha Continue.
+$ErrorActionPreferenceSave = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+& gh auth status -h github.com 2>&1 | Out-Null
+$GhAuthExit = $LASTEXITCODE
+$ErrorActionPreference = $ErrorActionPreferenceSave
+if ($GhAuthExit -ne 0) {
     throw "GitHub ruxsati topilmadi. Bir marta: gh auth login -h github.com"
 }
 
@@ -244,8 +250,14 @@ if (-not $SkipApk -and $ApkPath) {
     $ReleaseArgs += $ApkUploadPath
 }
 
-& gh @ReleaseArgs
-if ($LASTEXITCODE -ne 0) {
+# gh release create yuklash jarayonini STDERR ga chiqaradi — xuddi shu
+# NativeCommandError muammosi. EAP=Continue bilan o'tkazamiz.
+$ErrorActionPreferenceSave2 = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+& gh @ReleaseArgs 2>&1 | ForEach-Object { Write-Host $_ }
+$GhRelExit = $LASTEXITCODE
+$ErrorActionPreference = $ErrorActionPreferenceSave2
+if ($GhRelExit -ne 0) {
     throw "GitHub Release yaratilmadi."
 }
 

@@ -227,8 +227,8 @@ QPushButton {
                                       stop:0 #3b8dff, stop:1 #1f6fe8);
     color: #ffffff;
     border: 1px solid rgba(255,255,255,0.28);
-    border-radius: 999px;
-    padding: 9px 16px;
+    border-radius: 19px;
+    padding: 11px 20px;
     font-size: 13px;
     font-weight: 700;
 }
@@ -257,9 +257,9 @@ QPushButton[kind="ghost"]:hover {
 QPushButton[kind="chip"] {
     background-color: transparent;
     border: 1px solid #2a3a5c;
-    border-radius: 999px;
+    border-radius: 14px;
     color: #94a3b8;
-    padding: 7px 16px;
+    padding: 8px 16px;
     font-size: 12px;
     margin: 2px 3px;
 }
@@ -270,8 +270,8 @@ QToolButton#actionButton {
     background-color: rgba(255,255,255,0.07);
     color: #cbd5e1;
     border: 1px solid rgba(255,255,255,0.14);
-    border-radius: 999px;
-    padding: 7px 16px;
+    border-radius: 17px;
+    padding: 9px 18px;
     font-size: 12px;
     font-weight: 700;
 }
@@ -282,8 +282,8 @@ QToolButton#actionButton:hover {
 }
 
 QPushButton[kind="mini-status"] {
-    border-radius: 999px;
-    padding: 5px 10px;
+    border-radius: 13px;
+    padding: 6px 12px;
     font-size: 11px;
     font-weight: 700;
     border: 1px solid transparent;
@@ -314,7 +314,7 @@ QDoubleSpinBox:focus, QTextEdit:focus, QPlainTextEdit:focus {
 }
 QLineEdit#search {
     padding: 11px 18px 11px 36px;
-    border-radius: 999px;
+    border-radius: 22px;
     background-color: rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.14);
     font-size: 13.5px;
@@ -361,20 +361,33 @@ QTableWidget {
     selection-background-color: #1d4ed8;
     selection-color: #ffffff;
 }
-QTableWidget::item { padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.07); color: #c7d2e8; }
+QTableWidget::item { padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); color: #c7d2e8; }
 QTableWidget::item:selected { background-color: #1d3a8a; color: #ffffff; }
 QTableWidget::item:hover { background-color: rgba(59, 130, 246, 0.12); }
+QHeaderView {
+    background: transparent;
+    background-color: transparent;
+    border: none;
+}
 QHeaderView::section {
-    background-color: rgba(255,255,255,0.04);
-    color: #7d8db0;
+    background-color: rgba(255,255,255,0.07);
+    color: #94a3b8;
     border: none;
     border-bottom: 1px solid rgba(255,255,255,0.14);
-    padding: 10px 8px;
+    padding: 10px 12px;
     font-size: 11px;
     font-weight: 700;
 }
+QHeaderView::section:first {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+QHeaderView::section:last {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
 QTableCornerButton::section { background: transparent; border: none; }
-QTableWidget QTableCornerButton::section { background: transparent; }
+QTableWidget QTableCornerButton::section { background: transparent; border: none; }
 
 /* ===== Menus ===== */
 QMenu {
@@ -460,8 +473,8 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
     background-color: rgba(59, 130, 246, 0.16);
     color: #60a5fa;
     border: 1px solid rgba(59, 130, 246, 0.45);
-    border-radius: 999px;
-    padding: 3px 12px;
+    border-radius: 11px;
+    padding: 4px 14px;
     font-size: 11px;
     font-weight: 700;
 }
@@ -492,23 +505,24 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
 
 /* ===== Register-uslubidagi formalar ===== */
 QDialog[formStyle="register"] {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
+    background-color: #0e172a;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 20px;
 }
 QPushButton[formSubmit="true"] {
-    background-color: #00bfff;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3b8dff, stop:1 #1f6fe8);
     color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 16px;
-    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 19px;
+    padding: 11px 20px;
+    font-size: 14px;
+    font-weight: 700;
 }
 QPushButton[formSubmit="true"]:hover {
-    background-color: rgba(0, 191, 255, 150);
+    background-color: #2563eb;
 }
 QPushButton[formSubmit="true"]:pressed {
-    background-color: #009acd;
+    background-color: #1e40af;
 }
 
 /* ===== MessageBox ===== */
@@ -600,11 +614,11 @@ QLabel {
 #navButton {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 18px;
     color: #4c5d78;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
-    padding: 9px 10px;
+    padding: 10px 14px;
     text-align: left;
 }
 #navButton:hover {
@@ -621,11 +635,11 @@ QLabel {
 #updateBtn {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 16px;
     color: #64748b;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 9px 10px;
+    padding: 9px 14px;
     text-align: left;
 }
 #updateBtn:hover {
@@ -646,11 +660,11 @@ QLabel {
 #themeToggle {
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: 16px;
     color: #64748b;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 9px 10px;
+    padding: 9px 14px;
     text-align: left;
 }
 #themeToggle:hover {
@@ -691,15 +705,16 @@ QLabel {
 #cardSub { color: #8595ad; font-size: 12px; }
 #hintText { color: #8595ad; font-size: 11px; }
 
-/* ===== Buttons ===== */
+/* ===== Buttons (shisha pill) ===== */
 QPushButton {
-    background-color: #1d4ed8;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                                      stop:0 #3b8dff, stop:1 #1f6fe8);
     color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 16px;
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 19px;
+    padding: 11px 20px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 QPushButton:hover { background-color: #2563eb; }
 QPushButton:pressed { background-color: #1e40af; }
@@ -726,9 +741,9 @@ QPushButton[kind="ghost"]:hover {
 QPushButton[kind="chip"] {
     background-color: transparent;
     border: 1px solid #c2cfe2;
-    border-radius: 999px;
+    border-radius: 14px;
     color: #4c5d78;
-    padding: 7px 16px;
+    padding: 8px 16px;
     font-size: 12px;
     margin: 2px 3px;
 }
@@ -739,16 +754,16 @@ QToolButton#actionButton {
     background-color: #e7edf5;
     color: #33415c;
     border: 1px solid #c2cfe2;
-    border-radius: 8px;
-    padding: 6px 12px;
+    border-radius: 17px;
+    padding: 9px 18px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
 }
 QToolButton#actionButton:hover { background-color: #dbe3ee; color: #0b1830; border-color: #3b82f6; }
 
 QPushButton[kind="mini-status"] {
-    border-radius: 999px;
-    padding: 5px 10px;
+    border-radius: 13px;
+    padding: 6px 12px;
     font-size: 11px;
     font-weight: 700;
     border: 1px solid transparent;
@@ -776,7 +791,10 @@ QLineEdit:focus, QComboBox:focus, QDateEdit:focus, QSpinBox:focus,
 QDoubleSpinBox:focus, QTextEdit:focus, QPlainTextEdit:focus {
     border-color: #3b82f6;
 }
-QLineEdit#search { padding-left: 36px; border-radius: 999px; }
+QLineEdit#search {
+    padding: 11px 18px 11px 36px;
+    border-radius: 22px;
+}
 QLineEdit#search:focus { border-color: #3b82f6; }
 QLineEdit:disabled, QComboBox:disabled { color: #8595ad; background-color: #eef2f8; }
 
@@ -816,20 +834,33 @@ QTableWidget {
     selection-background-color: #1d4ed8;
     selection-color: #ffffff;
 }
-QTableWidget::item { padding: 4px 6px; border-bottom: 1px solid #e0e7f2; color: #33415c; }
+QTableWidget::item { padding: 6px 8px; border-bottom: 1px solid #e0e7f2; color: #33415c; }
 QTableWidget::item:selected { background-color: #1d4ed8; color: #ffffff; }
 QTableWidget::item:hover { background-color: rgba(43, 127, 255, 0.10); }
-QHeaderView::section {
-    background-color: #e7edf5;
-    color: #5b6b8c;
+QHeaderView {
+    background: transparent;
+    background-color: transparent;
     border: none;
-    border-bottom: 1px solid #d5deec;
-    padding: 10px 8px;
+}
+QHeaderView::section {
+    background-color: #e2e8f0;
+    color: #475569;
+    border: none;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 10px 12px;
     font-size: 11px;
     font-weight: 700;
 }
-QTableCornerButton::section { background-color: #e7edf5; border: none; }
-QTableWidget QTableCornerButton::section { background-color: #e7edf5; }
+QHeaderView::section:first {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+}
+QHeaderView::section:last {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+QTableCornerButton::section { background: transparent; border: none; }
+QTableWidget QTableCornerButton::section { background: transparent; border: none; }
 
 /* ===== Menus ===== */
 QMenu {
@@ -915,8 +946,8 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
     background-color: rgba(37, 99, 235, 0.12);
     color: #1d4ed8;
     border: 1px solid rgba(37, 99, 235, 0.4);
-    border-radius: 999px;
-    padding: 3px 12px;
+    border-radius: 11px;
+    padding: 4px 14px;
     font-size: 11px;
     font-weight: 700;
 }
@@ -947,16 +978,25 @@ QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: t
 
 /* ===== Register-uslubidagi formalar (har doim dark) ===== */
 QDialog[formStyle="register"] {
-    background-color: #1a1a1a;
-    border: 1px solid #333;
+    background-color: #0e172a;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 20px;
 }
 QPushButton[formSubmit="true"] {
-    background-color: #00bfff;
+    background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3b8dff, stop:1 #1f6fe8);
     color: #ffffff;
-    border: none;
-    border-radius: 10px;
-    padding: 10px;
-    font-size: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 19px;
+    padding: 11px 20px;
+    font-size: 14px;
+    font-weight: 700;
+}
+QPushButton[formSubmit="true"]:hover {
+    background-color: #2563eb;
+}
+QPushButton[formSubmit="true"]:pressed {
+    background-color: #1e40af;
+}
     font-weight: 600;
 }
 QPushButton[formSubmit="true"]:hover {

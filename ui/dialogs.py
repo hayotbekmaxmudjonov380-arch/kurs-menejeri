@@ -173,10 +173,10 @@ class StudentDialog(QDialog):
 
         title_row = QHBoxLayout()
         title_row.setSpacing(10)
-        title_row.addWidget(PulseDot(self))
+        title_row.addWidget(PulseDot(self, color="#3b82f6"))
         title = QLabel("Tahrirlash" if student else "Yangi o'quvchi")
         title.setStyleSheet(
-            "font-size: 28px; font-weight: 600; color: #00bfff;"
+            "font-size: 26px; font-weight: 700; color: #3b82f6;"
             "background: transparent; border: none;"
         )
         title_row.addWidget(title)
@@ -237,12 +237,12 @@ class StudentDialog(QDialog):
         self.note_edit.setFixedHeight(80)
         self.note_edit.setStyleSheet(
             "QPlainTextEdit {"
-            "background-color: #333; color: #fff;"
-            "border: 1px solid rgba(105, 105, 105, 0.4); border-radius: 10px;"
+            "background-color: rgba(255, 255, 255, 0.07); color: #e8eef7;"
+            "border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px;"
             "padding: 10px; font-size: 14px;"
-            "selection-background-color: #00bfff; selection-color: #fff;"
+            "selection-background-color: #1d4ed8; selection-color: #fff;"
             "}"
-            "QPlainTextEdit:focus { border: 1px solid #00bfff; }"
+            "QPlainTextEdit:focus { border: 1px solid #3b82f6; background-color: rgba(255, 255, 255, 0.12); }"
         )
 
         form.addWidget(self.name_edit)
@@ -1048,6 +1048,7 @@ class GroupDetailDialog(QDialog):
             widths=[200, 140, 170, 150, 80],
         )
         self.root.addWidget(self.table.in_glass())
+        self.root.addStretch(1)
 
         close_row = QHBoxLayout()
         close_row.addStretch(1)

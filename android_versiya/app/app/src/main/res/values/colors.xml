@@ -4,26 +4,32 @@
     <color name="bg_dark">#060A14</color>
     <color name="panel">#0E1628</color>
     <color name="panel_alt">#131C33</color>
-    <color name="border">#1C2742</color>
-    <color name="text">#E8EEF7</color>
-    <color name="text_dim">#93A1BD</color>
-    <color name="text_faint">#5B6B8C</color>
-    <color name="primary">#2B7FFF</color>
+    <color name="border">#223055</color>
+    <color name="text">#E2E8F0</color>
+    <color name="text_dim">#94A3B8</color>
+    <color name="text_faint">#64748B</color>
+    <color name="primary">#3B82F6</color>
     <color name="primary_dark">#1D4ED8</color>
     <color name="green">#22C55E</color>
-    <color name="green_dark">#189A52</color>
-    <color name="amber">#F5A80B</color>
-    <color name="amber_dark">#D9930D</color>
-    <color name="red">#F0435A</color>
-    <color name="red_dark">#E0324B</color>
-    <color name="avatar_bg">#C3D4F5</color>
-    <color name="avatar_fg">#1E3A8A</color>
+    <color name="green_dark">#16A34A</color>
+    <color name="amber">#F59E0B</color>
+    <color name="amber_dark">#D97706</color>
+    <color name="red">#EF4444</color>
+    <color name="red_dark">#DC2626</color>
+    <color name="avatar_bg">#3B82F6</color>
+    <color name="avatar_fg">#FFFFFF</color>
 
-    <color name="primary_light">#5B9BFF</color>
-    <color name="nav_sel_bg">#1F2B7FFF</color>
-    <color name="nav_sel_stroke">#4D2B7FFF</color>
-    <color name="nav_ripple">#332B7FFF</color>
+    <color name="primary_light">#60A5FA</color>
+    <color name="nav_sel_bg">#263B82F6</color>
+    <color name="nav_sel_stroke">#553B82F6</color>
+    <color name="nav_ripple">#333B82F6</color>
     <color name="nav_ripple_dark">#22FFFFFF</color>
-    <color name="drawer_top">#0A1024</color>
+    <color name="drawer_top">#0E172A</color>
     <color name="drawer_bottom">#080D19</color>
+
+    <!-- Glass Specific Tokens -->
+    <color name="glass_surface">#1AFFFFFF</color>
+    <color name="glass_surface_dialog">#141D34</color>
+    <color name="glass_input_bg">#12FFFFFF</color>
+    <color name="glass_border">#2EFFFFFF</color>
 </resources>

@@ -942,12 +942,39 @@
         }
 
         // ===== ESLATMALAR: push-habar tizimi =====
+        function notifState() {
+            // 'default' | 'granted' | 'denied' | 'unsupported'
+            if (!('Notification' in window)) return 'unsupported';
+            return Notification.permission;
+        }
         function requestNotifPermission() {
-            if (('Notification' in window) && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
+            // Faqat birinchi bosishda (user-gesture) so'raladi — sahifa
+            // yuklanishida so'rasa brauzer avtomatik rad etadi.
+            if (notifState() !== 'default') return;
+            try {
+                var p = Notification.requestPermission();
+                if (p && typeof p.then === 'function') p.then(function () {}, function () {});
+            } catch (e) { /* eski brauzer */ }
         }
         document.addEventListener('click', requestNotifPermission, {once: true});
+
+        // Ruxsat 'denied' bo'lsa brauzer QAYTA SO'RAY OLMSAYDI (qoida).
+        // Shu sabab tizim bildirishnomasi jim o'lik qolmasin — eslatma
+        // toastiga qo'llanma qo'shiladi. In-page toast doim ishlaydi.
+        function notifBlockedNote() {
+            var st = notifState();
+            if (st === 'granted') return '';
+            var msg;
+            if (st === 'unsupported') {
+                msg = '⚠️ Brauzer tizim bildirishnomalarini qo\'llab-quvvatlamaydi.';
+            } else if (st === 'denied') {
+                msg = '⚠️ Tizim bildirishnomasi o\'chirilgan — manzil qatoridagi 🔒 belgisi → ' +
+                      '«Bildirishnomalar» → «Ruxsat berish».';
+            } else {
+                msg = '🔔 Tizim bildirishnomasi uchun ruxsat bering.';
+            }
+            return '<div class="t-note" style="margin-top:6px;color:#f59e0b">' + msg + '</div>';
+        }
 
         function playBeep() {
             try {
@@ -986,6 +1013,7 @@
                 '<div class="t-title">🔔 ' + escapeHtml(r.title) + '</div>' +
                 '<div class="t-time">⏰ ' + escapeHtml(r.datetime_display) + '</div>' +
                 (r.note ? '<div class="t-note">' + escapeHtml(r.note) + '</div>' : '') +
+                notifBlockedNote() +
                 '<div class="d-flex gap-2">' +
                 '<button class="btn btn-success-custom btn-sm" data-act="done">✓ Bajarildi</button>' +
                 '<button class="btn btn-ghost btn-sm" data-act="close">Yopish</button>' +
@@ -1034,6 +1062,7 @@
             el.innerHTML =
                 '<div class="t-title">💳 To\'lov eslatmasi</div>' +
                 '<div class="t-note" style="margin-top:4px">' + escapeHtml(item.text) + '</div>' +
+                notifBlockedNote() +
                 '<div class="d-flex gap-2">' +
                 '<button class="btn btn-primary-custom btn-sm" data-act="go">To\'lovlar</button>' +
                 '<button class="btn btn-ghost btn-sm" data-act="close">Yopish</button>' +

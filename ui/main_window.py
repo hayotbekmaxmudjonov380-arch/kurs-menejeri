@@ -277,6 +277,13 @@ class MainWindow(QMainWindow):
         if app is not None:
             app.setStyleSheet(theme.get_qss())
         self._update_theme_btn()
+        try:
+            from ui import glass
+            glass.invalidate()
+        except Exception:
+            pass
+        if self.centralWidget():
+            self.centralWidget().update()
         self.refresh_all()
 
     def _on_nav_clicked(self, button: QPushButton) -> None:

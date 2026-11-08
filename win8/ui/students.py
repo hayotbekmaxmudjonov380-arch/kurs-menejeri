@@ -71,6 +71,7 @@ class StudentsPage(QWidget):
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         self.refresh()
 
@@ -125,7 +126,7 @@ class StudentsPage(QWidget):
         payload = action.data()
         if payload == "detail":
             dlg = dialogs.StudentDetailDialog(self, student["id"], on_change=self._after_change)
-            dlg.exec()
+            dlg.exec_()
         elif payload == "edit":
             self._edit_student(student)
         elif payload == "delete":
@@ -139,13 +140,13 @@ class StudentsPage(QWidget):
             )
             return
         dlg = dialogs.StudentDialog(self)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _edit_student(self, student: dict) -> None:
         current = student_service.get_student(student["id"]) or student
         dlg = dialogs.StudentDialog(self, current)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _delete_student(self, student: dict) -> None:

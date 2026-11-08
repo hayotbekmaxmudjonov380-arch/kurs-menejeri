@@ -46,6 +46,7 @@ class CoursesPage(QWidget):
 
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         self.refresh()
 
@@ -122,12 +123,12 @@ class CoursesPage(QWidget):
 
     def _add_course(self) -> None:
         dlg = dialogs.CourseDialog(self)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _edit_course(self, course: dict) -> None:
         dlg = dialogs.CourseDialog(self, course)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _toggle_course(self, course: dict) -> None:

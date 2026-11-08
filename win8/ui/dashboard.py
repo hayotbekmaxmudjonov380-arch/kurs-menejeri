@@ -75,6 +75,7 @@ class DashboardPage(QWidget):
         # ---- Jadval ----
         self.table = setup_table(self.COLUMNS, self.WIDTHS)
         layout.addWidget(self.table.in_glass())
+        layout.addStretch(1)
 
         self.refresh()
 
@@ -132,12 +133,12 @@ class DashboardPage(QWidget):
 
     def _show_detail(self, student_id: int) -> None:
         dlg = dialogs.StudentDetailDialog(self, student_id, on_change=self._after_change)
-        dlg.exec()
+        dlg.exec_()
 
     def _edit_student(self, student: dict) -> None:
         student = student_service.get_student(student["id"]) or student
         dlg = dialogs.StudentDialog(self, student)
-        if dlg.exec():
+        if dlg.exec_():
             self._after_change()
 
     def _delete_student(self, student: dict) -> None:
