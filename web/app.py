@@ -389,12 +389,19 @@ def api_monthly_payment_set():
         month = int(data.get("month"))
         raw = data.get("paid")
         paid = None if raw is None else bool(raw)
+
+        amount = 0.0
+        with DATABASE.session() as s:
+            st = s.query(Student).filter(Student.id == student_id).first()
+            if st:
+                amount = st.fee or 0.0
         try:
-            amount = float(str(data.get("amount") or "0").replace(" ", ""))
+            req_amt = float(str(data.get("amount") or "0").replace(" ", ""))
+            if req_amt > 0:
+                amount = req_amt
         except (ValueError, TypeError):
-            amount = 0.0
-        if paid is True and not amount > 0:
-            return jsonify({"error": "To'langan summani kiriting."}), 400
+            pass
+
         state = monthly_payment_service.set_status(
             student_id, year, month, paid, amount
         )

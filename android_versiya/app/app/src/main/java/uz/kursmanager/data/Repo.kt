@@ -224,6 +224,27 @@ class Repo(private val db: AppDatabase, private val sync: SyncManager) {
         }
     }
 
+    // ---------- Monthly Payments ----------
+    suspend fun monthlyPaymentsYear(year: Int): List<MonthlyPayment> = db.monthlyPayments().year(year)
+    suspend fun monthlyPaymentOne(sid: Long, year: Int, month: Int): MonthlyPayment? = db.monthlyPayments().one(sid, year, month)
+
+    suspend fun setMonthlyPayment(studentUid: String, year: Int, month: Int, paid: Boolean?, amount: Double = 0.0) {
+        val st = db.students().byUid(studentUid) ?: return
+        val cur = db.monthlyPayments().one(st.id, year, month)
+        if (paid == null) {
+            if (cur != null) sync.markDeleted("monthly_payments", cur.uid)
+            return
+        }
+        val e = (cur?.copy(paid = paid, amount = amount, updated_at = nowIso()))
+            ?: MonthlyPayment(uid = newUid(), studentId = st.id, studentUid = studentUid,
+                year = year, month = month, paid = paid, amount = amount, updated_at = nowIso())
+        db.monthlyPayments().upsert(e)
+        sync.enqueue("monthly_payments", e.uid, false, gson.toJson(mapOf(
+            "uid" to e.uid, "student_id_uid" to studentUid, "year" to year, "month" to month,
+            "paid" to paid, "amount" to amount, "updated_at" to e.updated_at
+        )))
+    }
+
     // ---------- Attendance ----------
     suspend fun attendanceRange(fromD: String, toD: String): List<Attendance> = db.attendance().range(fromD, toD)
     suspend fun attendanceOne(sid: Long, d: String): Attendance? = db.attendance().one(sid, d)

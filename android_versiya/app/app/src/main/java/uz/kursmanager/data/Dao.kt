@@ -58,6 +58,8 @@ interface PaymentDao {
 interface MonthlyPaymentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun upsert(e: MonthlyPayment): Long
     @Query("SELECT * FROM monthly_payments WHERE uid = :uid LIMIT 1") suspend fun byUid(uid: String): MonthlyPayment?
+    @Query("SELECT * FROM monthly_payments WHERE year = :year") suspend fun year(year: Int): List<MonthlyPayment>
+    @Query("SELECT * FROM monthly_payments WHERE studentId = :sid AND year = :year AND month = :month LIMIT 1") suspend fun one(sid: Long, year: Int, month: Int): MonthlyPayment?
     @Query("SELECT * FROM monthly_payments ORDER BY year DESC, month DESC") suspend fun all(): List<MonthlyPayment>
     @Query("SELECT * FROM monthly_payments WHERE updated_at > :since ORDER BY updated_at ASC") suspend fun since(since: String): List<MonthlyPayment>
     @Query("DELETE FROM monthly_payments WHERE uid = :uid") suspend fun deleteByUid(uid: String)
