@@ -1,24 +1,24 @@
 {
     "win10":  {
-                  "version":  "1.5.1",
-                  "min_version":  "1.5.1",
-                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.1/KursManager.exe",
-                  "sha256":  "3aa6a7ca8f4059a9892140e78cb49d77dcd7789a67239d76a016f6bb375fabaf",
+                  "version":  "1.5.2",
+                  "min_version":  "1.5.2",
+                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.2/KursManager.exe",
+                  "sha256":  "23cb221e623942bfa1686c3213c22024056b23442e210554dff2fbf96ffaf677",
                   "notes":  ""
               },
     "win8":  {
-                 "version":  "1.5.1",
-                 "min_version":  "1.5.1",
-                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.1/KursManager_Win8.exe",
-                 "sha256":  "1c48b6dc3c1a796a0f8e5d3c869bd74a0590bdddac647367efc9352ddee1b90d",
+                 "version":  "1.5.2",
+                 "min_version":  "1.5.2",
+                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.2/KursManager_Win8.exe",
+                 "sha256":  "939c259a9d2f52375d2a0022c5fc36346cd77e868448140493f3183e8757e6b0",
                  "notes":  ""
              },
     "android":  {
-                    "version":  "1.5.1",
-                    "versionCode":  155,
-                    "min_version":  "1.5.1",
-                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.1/KursManager-v1.5.1.apk",
-                    "sha256":  "f0419a257f894a9c52f826cff752458dcaa04be1586537c9986b441c83a4d8d2",
+                    "version":  "1.5.2",
+                    "versionCode":  156,
+                    "min_version":  "1.5.2",
+                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.2/KursManager-v1.5.2.apk",
+                    "sha256":  "820d127c1e745cda8aed37052deb4765fbd21c0bd17410b047e00ab412d9d7c1",
                     "notes":  ""
                 }
 }

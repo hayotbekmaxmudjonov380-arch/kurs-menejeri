@@ -12,14 +12,23 @@ android {
         applicationId = "uz.kursmanager"
         minSdk = 26
         targetSdk = 34
-        versionCode = 155
-        versionName = "1.5.1"
+        versionCode = 156
+        versionName = "1.5.2"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("my-release-key.jks")
+            storePassword = "hayotbek9685"
+            keyAlias = "kursmanager"
+            keyPassword = "hayotbek9685"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
