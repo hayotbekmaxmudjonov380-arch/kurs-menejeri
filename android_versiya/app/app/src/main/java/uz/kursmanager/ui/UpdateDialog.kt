@@ -50,19 +50,7 @@ class UpdateDialog(
         b.tvNew.text = "v${info.version}"
         b.tvNotes.text = info.notes
 
-        // Footer: faqat link qismi bosiladi
-        val prefix = "Yangilanish tarixi va tafsilotlari: "
-        val link = "GitHub'da ko'rish"
-        val span = SpannableString(prefix + link)
-        span.setSpan(
-            URLSpan(RELEASES_URL),
-            prefix.length,
-            (prefix + link).length,
-            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-        b.tvFooter.text = span
-        b.tvFooter.movementMethod = LinkMovementMethod.getInstance()
-        b.tvFooter.highlightColor = 0x33FFFFFF
+        b.tvFooter.visibility = View.GONE
 
         b.btnUpdate.setOnClickListener { onUpdate(this) }
         b.btnSecondary.text = if (forced) "Chiqish" else "Keyinroq"
