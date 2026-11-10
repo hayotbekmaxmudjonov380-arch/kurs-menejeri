@@ -2,10 +2,10 @@
 <resources>
     <color name="bg">#080D19</color>
     <color name="bg_dark">#060A14</color>
-    <color name="panel">#0E1628</color>
-    <color name="panel_alt">#131C33</color>
-    <color name="border">#223055</color>
-    <color name="text">#E2E8F0</color>
+    <color name="panel">#E614213B</color>
+    <color name="panel_alt">#E61B2B4C</color>
+    <color name="border">#3D60A5FA</color>
+    <color name="text">#F8FAFC</color>
     <color name="text_dim">#94A3B8</color>
     <color name="text_faint">#64748B</color>
     <color name="primary">#3B82F6</color>
@@ -16,20 +16,21 @@
     <color name="amber_dark">#D97706</color>
     <color name="red">#EF4444</color>
     <color name="red_dark">#DC2626</color>
-    <color name="avatar_bg">#3B82F6</color>
-    <color name="avatar_fg">#FFFFFF</color>
+    <color name="avatar_bg">#203B82F6</color>
+    <color name="avatar_fg">#60A5FA</color>
 
     <color name="primary_light">#60A5FA</color>
-    <color name="nav_sel_bg">#263B82F6</color>
-    <color name="nav_sel_stroke">#553B82F6</color>
-    <color name="nav_ripple">#333B82F6</color>
-    <color name="nav_ripple_dark">#22FFFFFF</color>
-    <color name="drawer_top">#0E172A</color>
-    <color name="drawer_bottom">#080D19</color>
+    <color name="nav_sel_bg">#333B82F6</color>
+    <color name="nav_sel_stroke">#8060A5FA</color>
+    <color name="nav_ripple">#403B82F6</color>
+    <color name="nav_ripple_dark">#33FFFFFF</color>
+    <color name="drawer_top">#F0111C33</color>
+    <color name="drawer_bottom">#F0080D19</color>
 
-    <!-- Glass Specific Tokens -->
+    <!-- Glass Specific Tokens (Frosted Glass UI) -->
     <color name="glass_surface">#1AFFFFFF</color>
-    <color name="glass_surface_dialog">#141D34</color>
-    <color name="glass_input_bg">#12FFFFFF</color>
-    <color name="glass_border">#2EFFFFFF</color>
+    <color name="glass_surface_dialog">#F0121D35</color>
+    <color name="glass_input_bg">#1AFFFFFF</color>
+    <color name="glass_border">#4060A5FA</color>
+    <color name="glass_glow">#253B82F6</color>
 </resources>

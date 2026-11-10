@@ -1,24 +1,24 @@
 {
     "win10":  {
-                  "version":  "1.5.0",
-                  "min_version":  "1.5.0",
-                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.0/KursManager.exe",
-                  "sha256":  "c3a37b35bce4c41fa02243bce03f3d6a999143b07271b23aab5cbd3adb58ca1f",
-                  "notes":  "- Glassmorphism: barcha sahifalar, shisha kartochkalar, dialoglar va jadval sarlavhalari yangilandi (desktop va web bir xil)\n- Windows 8.1 (Qt5) versiyasi shisha dizayn bilan to\u0027liq yangilandi: modal oynalar ochilishi va Saqlash tugmasi tuzatildi\n- Tizim bildirishnomasi ruxsati o\u0027chirilgan bo\u0027lsa, eslatma ichida qo\u0027llanma ko\u0027rsatiladi\n- Android: desktop bilan bir xil yumaloq shisha UI dizayni\n"
+                  "version":  "1.5.1",
+                  "min_version":  "1.5.1",
+                  "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.1/KursManager.exe",
+                  "sha256":  "3aa6a7ca8f4059a9892140e78cb49d77dcd7789a67239d76a016f6bb375fabaf",
+                  "notes":  ""
               },
     "win8":  {
-                 "version":  "1.5.0",
-                 "min_version":  "1.5.0",
-                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.0/KursManager_Win8.exe",
-                 "sha256":  "e162ef680737b4e9b86b00b86ea027f5f7fc913abb66997ab5afb6bafdbc87b9",
-                 "notes":  "- Glassmorphism: barcha sahifalar, shisha kartochkalar, dialoglar va jadval sarlavhalari yangilandi (desktop va web bir xil)\n- Windows 8.1 (Qt5) versiyasi shisha dizayn bilan to\u0027liq yangilandi: modal oynalar ochilishi va Saqlash tugmasi tuzatildi\n- Tizim bildirishnomasi ruxsati o\u0027chirilgan bo\u0027lsa, eslatma ichida qo\u0027llanma ko\u0027rsatiladi\n- Android: desktop bilan bir xil yumaloq shisha UI dizayni\n"
+                 "version":  "1.5.1",
+                 "min_version":  "1.5.1",
+                 "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.1/KursManager_Win8.exe",
+                 "sha256":  "1c48b6dc3c1a796a0f8e5d3c869bd74a0590bdddac647367efc9352ddee1b90d",
+                 "notes":  ""
              },
     "android":  {
-                    "version":  "1.5.0",
-                    "versionCode":  154,
-                    "min_version":  "1.5.0",
-                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.0/KursManager-v1.5.0.apk",
-                    "sha256":  "2b96c2aa3ef2445e844ce21bd787680b26638b6ba0ebb4c7db209165cc74ae17",
-                    "notes":  "- Glassmorphism: barcha sahifalar, shisha kartochkalar, dialoglar va jadval sarlavhalari yangilandi (desktop va web bir xil)\n- Windows 8.1 (Qt5) versiyasi shisha dizayn bilan to\u0027liq yangilandi: modal oynalar ochilishi va Saqlash tugmasi tuzatildi\n- Tizim bildirishnomasi ruxsati o\u0027chirilgan bo\u0027lsa, eslatma ichida qo\u0027llanma ko\u0027rsatiladi\n- Android: desktop bilan bir xil yumaloq shisha UI dizayni\n"
+                    "version":  "1.5.1",
+                    "versionCode":  155,
+                    "min_version":  "1.5.1",
+                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.1/KursManager-v1.5.1.apk",
+                    "sha256":  "f0419a257f894a9c52f826cff752458dcaa04be1586537c9986b441c83a4d8d2",
+                    "notes":  ""
                 }
 }
