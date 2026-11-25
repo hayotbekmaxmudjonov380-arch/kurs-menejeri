@@ -14,11 +14,11 @@
                  "notes":  ""
              },
     "android":  {
-                    "version":  "1.5.6",
-                    "versionCode":  160,
+                    "version":  "1.6.0",
+                    "versionCode":  162,
                     "min_version":  "1.5.5",
-                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.5.6/KursManager-v1.5.6.apk",
-                    "sha256":  "6aa34076a7935efff8c911ec9b148810c153be04a958b8cd39f0e86153bdf209",
-                    "notes":  "Test natijalari uchun guruhlar filtri va oy tartibi (Avgust-Iyul) qo'shildi."
+                    "url":  "https://github.com/hayotbekmaxmudjonov380-arch/kurs-menejeri/releases/download/v1.6.0/KursManager-v1.6.0.apk",
+                    "sha256":  "a2444a5a698cb232c3c10ad956fb4b82cce651a474b395f50f6daa5b6184c28c",
+                    "notes":  "Guruhlar filtri va oy tartibi (Avgust-Iyul) qo'shildi."
                 }
 }

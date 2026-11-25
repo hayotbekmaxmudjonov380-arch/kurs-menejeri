@@ -12,8 +12,8 @@ android {
         applicationId = "uz.kursmanager"
         minSdk = 26
         targetSdk = 34
-        versionCode = 160
-        versionName = "1.5.6"
+        versionCode = 162
+        versionName = "1.6.0"
     }
 
     signingConfigs {
