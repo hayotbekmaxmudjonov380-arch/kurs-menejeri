@@ -185,8 +185,9 @@ class PaymentsFragment : Fragment() {
     private fun buildSections(): List<Pair<String?, List<Student>>> {
         val sel = selectedGroupUid
         if (sel != null) {
+            val group = groups.find { it.uid == sel }
             val uids = memberships.filter { it.groupUid == sel }.map { it.studentUid }.toSet()
-            return listOf(null to students.filter { it.uid in uids })
+            return listOf((group?.name ?: "Guruh") to students.filter { it.uid in uids })
         }
         if (groups.isEmpty()) return listOf(null to students)
         val sections = mutableListOf<Pair<String?, List<Student>>>()

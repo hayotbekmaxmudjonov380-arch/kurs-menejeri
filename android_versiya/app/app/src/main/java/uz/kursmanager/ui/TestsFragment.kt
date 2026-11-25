@@ -11,12 +11,14 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.ScrollView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -27,6 +29,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 import uz.kursmanager.R
 import uz.kursmanager.app
+import uz.kursmanager.data.Group
+import uz.kursmanager.data.GroupMember
 import uz.kursmanager.data.Student
 import uz.kursmanager.data.TestResult
 import uz.kursmanager.databinding.DialogTestBinding
@@ -51,6 +55,13 @@ class TestsFragment : Fragment() {
 
     private var studentsAll: List<Student> = emptyList()
     private var testsAll: List<TestResult> = emptyList()
+    private var groups: List<Group> = emptyList()
+    private var memberships: List<GroupMember> = emptyList()
+    private var selectedGroupUid: String? = null
+    private var spinnerUids: List<String?> = emptyList()
+    private var spinnerLabels: List<String> = emptyList()
+    private lateinit var groupSpin: Spinner
+
     private var curStudents: List<Student> = emptyList()
     private var curColumns: List<LocalDate> = emptyList()
 
@@ -97,6 +108,22 @@ class TestsFragment : Fragment() {
         v.findViewById<FloatingActionButton>(R.id.fabAdd).setOnClickListener { showForm(null, null, null) }
         v.findViewById<ImageButton>(R.id.btnPrint).setOnClickListener { printPdf() }
         btnMonth.setOnClickListener { showMonthMenu() }
+
+        groupSpin = Spinner(requireContext()).apply {
+            background = ContextCompat.getDrawable(context, R.drawable.bg_input)
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+        }
+        (v as ViewGroup).addView(groupSpin, 2)
+        groupSpin.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val uid = spinnerUids.getOrElse(position) { null }
+                if (uid == selectedGroupUid) return
+                selectedGroupUid = uid
+                reload()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
         v.findViewById<EditText>(R.id.inSearch).apply {
             hint = "O'quvchi qidirish..."
             searchBox = this
@@ -130,7 +157,14 @@ class TestsFragment : Fragment() {
         val calendarMonths = listOf(now.year - 1, now.year, now.year + 1).flatMap { y ->
             (1..12).map { YearMonth.of(y, it) }
         }
-        return (fromData + calendarMonths).distinct().sortedDescending()
+        val allMonths = (fromData + calendarMonths).distinct()
+        return allMonths.sortedWith(
+            compareByDescending<YearMonth> { ym ->
+                if (ym.monthValue >= 8) ym.year else ym.year - 1
+            }.thenBy { ym ->
+                if (ym.monthValue >= 8) ym.monthValue - 8 else ym.monthValue + 4
+            }
+        )
     }
 
     private fun updateMonthButton() {
@@ -175,6 +209,22 @@ class TestsFragment : Fragment() {
         }
     }
 
+    private fun updateGroupSpinner() {
+        val labels = listOf("Barcha guruhlar") + groups.map { it.name }
+        val uids = listOf<String?>(null) + groups.map { it.uid }
+        spinnerUids = uids
+        if (selectedGroupUid != null && selectedGroupUid !in uids) {
+            selectedGroupUid = null
+        }
+        if (labels != spinnerLabels) {
+            spinnerLabels = labels
+            val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, labels)
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            groupSpin.adapter = adapter
+            groupSpin.setSelection(uids.indexOf(selectedGroupUid).coerceAtLeast(0))
+        }
+    }
+
     /** filter = null bo'lsa qidiruv maydonidagi matn saqlanadi. */
     private fun reload(filter: String? = null) {
         val q0 = (filter ?: searchBox?.text?.toString() ?: "").trim().lowercase()
@@ -182,8 +232,20 @@ class TestsFragment : Fragment() {
             val repo = requireContext().app().repo
             studentsAll = repo.students().sortedBy { it.full_name.lowercase() }
             testsAll = repo.testResults()
+            groups = repo.groups().sortedBy { it.name.lowercase() }
+            memberships = repo.allGroupMembers()
+            updateGroupSpinner()
+
+            val sel = selectedGroupUid
+            val groupStudents = if (sel != null) {
+                val uids = memberships.filter { it.groupUid == sel }.map { it.studentUid }.toSet()
+                studentsAll.filter { it.uid in uids }
+            } else {
+                studentsAll
+            }
+
             val q = q0
-            curStudents = studentsAll.filter { q.isEmpty() || it.full_name.lowercase().contains(q) }
+            curStudents = groupStudents.filter { q.isEmpty() || it.full_name.lowercase().contains(q) }
 
             val month = selectedMonth
             curColumns = if (month != null) {
@@ -309,7 +371,7 @@ class TestsFragment : Fragment() {
     }
 
     /** Kvadratcha katakcha: foiz yoki «—» (bosib qo'shish). */
-    private fun cellView(st: Student, date: LocalDate, si: Int): View {
+    private fun cellView(st: Student, date: LocalDate, _si: Int): View {
         val ctx = requireContext()
         val results = resultsFor(st, date)
         return TextView(ctx).apply {
